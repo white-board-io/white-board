@@ -43,6 +43,7 @@
         "vite-tsconfig-paths": "6.0.2",
       },
       "devDependencies": {
+        "@repo/eslint-config": "*",
         "@tanstack/devtools-vite": "0.3.11",
         "@testing-library/dom": "10.4.0",
         "@testing-library/react": "16.2.0",
@@ -50,6 +51,7 @@
         "@types/react": "19.2.0",
         "@types/react-dom": "19.2.0",
         "@vitejs/plugin-react": "5.0.4",
+        "eslint": "9.39.1",
         "jsdom": "27.0.0",
         "typescript": "5.9.2",
         "vite": "7.1.7",
@@ -63,6 +65,7 @@
       "devDependencies": {
         "@eslint/js": "9.39.1",
         "@next/eslint-plugin-next": "15.5.0",
+        "@tanstack/eslint-plugin-router": "1.132.0",
         "eslint": "9.39.1",
         "eslint-config-prettier": "10.1.1",
         "eslint-plugin-only-warn": "1.1.0",
@@ -434,6 +437,8 @@
     "@tanstack/devtools-vite": ["@tanstack/devtools-vite@0.3.11", "", { "dependencies": { "@babel/core": "^7.28.4", "@babel/generator": "^7.28.3", "@babel/parser": "^7.28.4", "@babel/traverse": "^7.28.4", "@babel/types": "^7.28.4", "@tanstack/devtools-client": "0.0.4", "@tanstack/devtools-event-bus": "0.3.3", "chalk": "^5.6.2", "launch-editor": "^2.11.1", "picomatch": "^4.0.3" }, "peerDependencies": { "vite": "^6.0.0 || ^7.0.0" } }, "sha512-t5jaWJNgkXOQTxuNrwkz71cN86zPZnLJY2Rz0IaMDgjb0ib1EKHeRgdqHMR/2YL96yhCHHDCHroBQXsw5Da4dg=="],
 
     "@tanstack/directive-functions-plugin": ["@tanstack/directive-functions-plugin@1.132.0", "", { "dependencies": { "@babel/code-frame": "7.27.1", "@babel/core": "^7.27.7", "@babel/traverse": "^7.27.7", "@babel/types": "^7.27.7", "@tanstack/router-utils": "1.132.0", "babel-dead-code-elimination": "^1.0.10", "tiny-invariant": "^1.3.3" }, "peerDependencies": { "vite": ">=6.0.0 || >=7.0.0" } }, "sha512-5+K3msIpSYkiDE0PTIAT2HzZRps/M2uQsDEA5HApXxOhIAWykQ/yyO1umgkMwYpgJqnT96AVHb0E559Dfvhj0A=="],
+
+    "@tanstack/eslint-plugin-router": ["@tanstack/eslint-plugin-router@1.132.0", "", { "dependencies": { "@typescript-eslint/utils": "^8.23.0" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0" } }, "sha512-23saeqis3nLPVzm1Q05GqL6CWvv+yQhD2nIsF5kj8wWRLo5TJu1+jT2JNYTgiVdXrcJY6vij6xRRfQMXEKbJgA=="],
 
     "@tanstack/history": ["@tanstack/history@1.132.0", "", {}, "sha512-GG2R9I6QSlbNR9fEuX2sQCigY6K28w51h2634TWmkaHXlzQw+rWuIWr4nAGM9doA+kWRi1LFSFMvAiG3cOqjXQ=="],
 
