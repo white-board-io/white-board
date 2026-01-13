@@ -26,6 +26,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 
   // This loads all plugins defined in routes
   // define your routes in one of these
+  // File-based routing: folder structure determines route prefix
+  // e.g., routes/api/v1/todos/index.ts -> /api/v1/todos
 
   void fastify.register(AutoLoad, {
     dir: join(__dirname, "routes"),
