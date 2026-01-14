@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     ".": "./src/db/index.ts",
-    "./schema": "./src/schema/todo.ts"
+    "./schema/todo": "./src/schema/todo.ts",
+    "./schema/auth": "./src/schema/auth.ts"
   },
   "scripts": {
     "lint": "eslint .",

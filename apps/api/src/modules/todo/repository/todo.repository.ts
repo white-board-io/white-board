@@ -4,7 +4,7 @@ import type {
   UpdateTodoInput,
 } from "../schemas/todo.schema";
 import { db, eq, desc, and, sql } from "@repo/database";
-import { todos } from "@repo/database/schema";
+import { todos } from "@repo/database/schema/todo";
 import { pickBy, identity } from "lodash";
 
 export const todoRepository = {

@@ -1,135 +1,210 @@
-# Turborepo starter
+---
+title: White Board - Educational Platform
+description: Multi-tenant educational platform for schools, colleges, and training institutes
+version: 1.0.0
+---
 
-This Turborepo starter is maintained by the Turborepo core team.
+# White Board
 
-## Using this example
+Multi-tenant educational platform built with TypeScript, designed for schools, colleges, training institutes, and tuition centers.
 
-Run the following command:
+## Tech Stack
 
-```sh
-npx create-turbo@latest
+- **Runtime**: Bun
+- **Monorepo**: Turborepo
+- **API**: Fastify
+- **Frontend**: TanStack Start
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: better-auth with RBAC
+
+## Project Structure
+
+```
+white-board/
+├── apps/
+│   ├── api/          # Fastify REST API
+│   ├── web/          # TanStack Start frontend
+│   └── docs/         # Next.js documentation
+├── packages/
+│   ├── auth/         # Authentication with better-auth
+│   ├── database/     # Drizzle ORM schemas and migrations
+│   ├── ui/           # Shared React components
+│   ├── eslint-config/
+│   └── typescript-config/
 ```
 
-## What's inside?
+## Packages
 
-This Turborepo includes the following packages/apps:
+| Package | Description |
+|---------|-------------|
+| `@repo/auth` | Authentication with RBAC using better-auth |
+| `@repo/database` | PostgreSQL schemas with Drizzle ORM |
+| `@repo/ui` | Shared React component library |
+| `@repo/eslint-config` | ESLint configurations |
+| `@repo/typescript-config` | TypeScript configurations |
 
-### Apps and Packages
+## Authentication
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+Multi-tenant authentication with organization-based RBAC.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Default Roles
 
-### Utilities
+| Role | Description |
+|------|-------------|
+| `owner` | Full organization control |
+| `admin` | Manage users, settings, content |
+| `teacher` | Create/manage courses, grades, attendance |
+| `student` | Access courses and learning materials |
+| `parent` | View student progress |
+| `staff` | Administrative tasks |
 
-This Turborepo has some additional tools already setup for you:
+### Auth API Endpoints
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/signup` | Sign up with organization |
+| POST | `/api/v1/auth/signin` | Sign in |
+| POST | `/api/v1/auth/signout` | Sign out |
+| GET | `/api/v1/auth/session` | Get current session with orgs |
+| POST | `/api/v1/auth/forget-password` | Request password reset |
+| POST | `/api/v1/auth/reset-password` | Reset password |
+| POST | `/api/v1/auth/change-password` | Change password |
+| PATCH | `/api/v1/auth/profile` | Update profile |
+
+### Organization Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/auth/organizations/:id` | Get organization details |
+| PATCH | `/api/v1/auth/organizations/:id` | Update organization |
+| DELETE | `/api/v1/auth/organizations/:id` | Delete organization (soft) |
+| POST | `/api/v1/auth/organizations/:id/switch` | Switch active org |
+| GET | `/api/v1/auth/organizations/:id/members` | List members |
+| DELETE | `/api/v1/auth/organizations/:id/members/:memberId` | Remove member |
+| POST | `/api/v1/auth/organizations/:id/invitations` | Invite member |
+| GET | `/api/v1/auth/organizations/:id/invitations` | List invitations |
+| DELETE | `/api/v1/auth/organizations/:id/invitations/:invId` | Cancel invitation |
+| POST | `/api/v1/auth/invitations/accept` | Accept invitation |
+
+### Signup Request
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "password": "securepassword123",
+  "organizationName": "ABC School",
+  "organizationType": "school"
+}
+```
+
+Organization types: `other`, `school`, `college`, `tuition`, `training_institute`
+
+## Getting Started
+
+### Prerequisites
+
+- Bun 1.3+
+- PostgreSQL 15+
+- Node.js 18+ (for some tooling)
+
+### Installation
+
+```bash
+bun install
+```
+
+### Database Setup
+
+```bash
+cd packages/database
+bun run db:generate
+bun run db:migrate
+```
+
+### Development
+
+```bash
+bun run dev
+```
 
 ### Build
 
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+bun run build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Lint
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+bun run lint
 ```
 
-### Develop
+## Development Guidelines
 
-To develop all apps and packages, run the following command:
+### Code Style
 
-```
-cd my-turborepo
+This project follows strict coding conventions. Key principles:
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+1. **No Comments** - Write self-documenting code with clear, descriptive naming
+2. **Use `type` not `interface`** - Always use TypeScript `type` for definitions
+3. **Type imports** - Use `import type` for type-only imports
+4. **Explicit return types** - All handlers must have explicit return types
+5. **Thin route handlers** - Delegate to command/query handlers
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+See [apps/api/docs/coding-conventions.md](apps/api/docs/coding-conventions.md) for full guidelines.
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### No Comments Policy
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Code should be readable through proper naming, not comments. Comments are redundant when:
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+- Function names clearly describe what they do
+- Variable names explain their purpose
+- Type definitions document the data shape
+- File names follow consistent patterns
 
-### Remote Caching
+```typescript
+// Bad - comment explains what code does
+// Create a new todo item
+export async function create(input: unknown) { ... }
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+// Good - name is self-explanatory
+export async function createTodoHandler(input: unknown) { ... }
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+```typescript
+// Bad - comment explains variable
+const t = 3600; // token expiry in seconds
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+// Good - name explains itself
+const resetPasswordTokenExpiresInSeconds = 3600;
 ```
 
-## Useful Links
+### File Naming
 
-Learn more about the power of Turborepo:
+| Type | Pattern | Example |
+|------|---------|---------|
+| Command | `{action}-{resource}.command.ts` | `create-todo.command.ts` |
+| Query | `{action}-{resource}.query.ts` | `get-all-todos.query.ts` |
+| Schema | `{resource}.schema.ts` | `todo.schema.ts` |
+| Repository | `{resource}.repository.ts` | `todo.repository.ts` |
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | required |
+| `CLIENT_ORIGIN` | Frontend URL for CORS | `http://localhost:3000` |
+| `NODE_ENV` | Environment mode | `development` |
+
+## Documentation
+
+- [Auth Endpoints](apps/api/docs/auth-endpoints.md)
+- [Coding Conventions](apps/api/docs/coding-conventions.md)
+- [CQRS Pattern](apps/api/docs/cqrs-pattern.md)
+- [Creating Endpoints](apps/api/docs/creating-endpoints.md)
+- [Error Handling](apps/api/docs/error-handling.md)
+- [Folder Structure](apps/api/docs/folder-structure.md)
+- [Logging](apps/api/docs/logging.md)
+- [Schemas & Validation](apps/api/docs/schemas-validation.md)

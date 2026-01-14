@@ -1,13 +1,10 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "../schema/todo.js";
+import * as todoSchema from "../schema/todo";
+import * as authSchema from "../schema/auth";
 
-/**
- * Database connection instance
- *
- * Uses DATABASE_URL environment variable for connection.
- * The connection is lazily initialized on first use.
- */
+const schema = { ...todoSchema, ...authSchema };
+
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {

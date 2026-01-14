@@ -1,18 +1,17 @@
-/**
- * Error codes for i18n support
- * Client-side can use these codes to look up translated messages
- */
 export type ErrorCode =
   | "VALIDATION_ERROR"
   | "RESOURCE_NOT_FOUND"
   | "DUPLICATE_RESOURCE"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
   | "INTERNAL_ERROR";
 
-export interface AppErrorResponse {
+export type AppErrorResponse = {
   code: ErrorCode;
+  message?: string;
   formatArgs?: Record<string, string | number>;
   details?: Record<string, unknown>;
-}
+};
 
 export class AppError extends Error {
   public readonly code: ErrorCode;
@@ -23,9 +22,10 @@ export class AppError extends Error {
   constructor(
     code: ErrorCode,
     formatArgs?: Record<string, string | number>,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
+    message?: string
   ) {
-    super(code); // Use code as message for logging
+    super(message || code);
     this.name = "AppError";
     this.code = code;
     this.formatArgs = formatArgs;
@@ -38,6 +38,8 @@ export class AppError extends Error {
   private getStatusCode(code: ErrorCode): number {
     const statusMap: Record<ErrorCode, number> = {
       VALIDATION_ERROR: 400,
+      UNAUTHORIZED: 401,
+      FORBIDDEN: 403,
       RESOURCE_NOT_FOUND: 404,
       DUPLICATE_RESOURCE: 409,
       INTERNAL_ERROR: 500,
@@ -48,13 +50,13 @@ export class AppError extends Error {
   toJSON(): AppErrorResponse {
     return {
       code: this.code,
+      ...(this.message !== this.code && { message: this.message }),
       ...(this.formatArgs && { formatArgs: this.formatArgs }),
       ...(this.details && { details: this.details }),
     };
   }
 }
 
-// Factory functions for common errors
 export const createValidationError = (details?: Record<string, unknown>) =>
   new AppError("VALIDATION_ERROR", undefined, details);
 
@@ -66,5 +68,11 @@ export const createDuplicateError = (
   field: string,
   value: string
 ) => new AppError("DUPLICATE_RESOURCE", { resource, field, value });
+
+export const createUnauthorizedError = (message?: string) =>
+  new AppError("UNAUTHORIZED", undefined, undefined, message || "Authentication required");
+
+export const createForbiddenError = (message?: string) =>
+  new AppError("FORBIDDEN", undefined, undefined, message || "Access denied");
 
 export const createInternalError = () => new AppError("INTERNAL_ERROR");

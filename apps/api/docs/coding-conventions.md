@@ -2,11 +2,68 @@
 title: Coding Conventions
 description: TypeScript and code style guidelines for the API project
 category: guidelines
+priority: high
 ---
 
 # Coding Conventions
 
 This document outlines the coding standards and conventions for the API project.
+
+## No Comments Policy
+
+**Do not add comments to code.** Write self-documenting code with clear, descriptive naming instead. Comments are redundant and add noise when code is properly named.
+
+### Why No Comments
+
+- Comments become outdated and misleading
+- Good naming makes comments unnecessary
+- Comments clutter the codebase
+- Type definitions already document data shapes
+
+### Instead of Comments, Use
+
+| Bad (with comments) | Good (self-documenting) |
+|---------------------|------------------------|
+| `const t = 3600; // seconds` | `const tokenExpiresInSeconds = 3600;` |
+| `// Get user by ID` | `getUserById(id)` |
+| `// Check if valid` | `isValidEmail(email)` |
+| `// Admin can delete` | `canAdminDeleteResource(user)` |
+
+### Examples
+
+```typescript
+// Bad
+// Create a new todo item and save to database
+export async function create(input: unknown) {
+  // Validate the input first
+  const result = schema.safeParse(input);
+  // ...
+}
+
+// Good
+export async function createTodoHandler(input: unknown) {
+  const validationResult = CreateTodoInputSchema.safeParse(input);
+  // ...
+}
+```
+
+```typescript
+// Bad
+const d = new Date(); // current date
+const e = 3600; // expiry time
+
+// Good
+const currentDate = new Date();
+const sessionExpiryInSeconds = 3600;
+```
+
+### Acceptable Exceptions
+
+Comments are acceptable only for:
+
+- TODO markers for future work: `// TODO: implement caching`
+- Complex regex explanations (if truly unavoidable)
+- Legal/license headers (if required)
 
 ## TypeScript Guidelines
 
@@ -15,19 +72,14 @@ This document outlines the coding standards and conventions for the API project.
 Always use `type` for type definitions, never `interface`:
 
 ```typescript
-// ✅ Good - use type
+// Good
 export type Todo = {
   id: string;
   title: string;
   completed: boolean;
 };
 
-export type CreateTodoInput = {
-  title: string;
-  description?: string;
-};
-
-// ❌ Bad - don't use interface
+// Bad
 export interface Todo {
   id: string;
   title: string;
@@ -37,10 +89,10 @@ export interface Todo {
 When deriving types from Zod schemas:
 
 ```typescript
-// ✅ Good
+// Good
 export type Todo = z.infer<typeof TodoSchema>;
 
-// ❌ Bad
+// Bad
 export interface Todo extends z.infer<typeof TodoSchema> {}
 ```
 
@@ -49,11 +101,11 @@ export interface Todo extends z.infer<typeof TodoSchema> {}
 Import types using the `type` keyword:
 
 ```typescript
-// ✅ Good
+// Good
 import type { Todo, CreateTodoInput } from "../schemas/todo.schema";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-// ❌ Bad
+// Bad
 import { Todo, CreateTodoInput } from "../schemas/todo.schema";
 ```
 
@@ -70,51 +122,9 @@ export const TodoSchema = z.object({
 export type Todo = z.infer<typeof TodoSchema>;
 ```
 
-## No JSDoc Comments
+## Naming Conventions
 
-Do not add JSDoc comments to route handlers or endpoint methods:
-
-```typescript
-// ✅ Good - no JSDoc
-fastify.post("/", async (request, reply) => {
-  try {
-    const result = await createTodoHandler(request.body, fastify.logger);
-    return reply.status(201).send(result);
-  } catch (error) {
-    return handleError(error, reply);
-  }
-});
-
-// ❌ Bad - avoid JSDoc on route handlers
-/**
- * Create a new todo
- * @param request - The Fastify request
- * @param reply - The Fastify reply
- * @returns The created todo
- */
-fastify.post("/", async (request, reply) => {
-  // ...
-});
-```
-
-JSDoc is acceptable for shared utilities and complex internal functions if absolutely needed, but prefer self-documenting code with clear naming.
-
-## File Naming
-
-### Use Kebab-Case
-
-All file names use kebab-case with descriptive suffixes:
-
-```
-create-todo.command.ts      # Command handler
-get-all-todos.query.ts      # Query handler
-todo.schema.ts              # Zod schemas
-todo.validator.ts           # Business validators
-todo.repository.ts          # Data access
-error-handler.ts            # Utilities
-```
-
-### File Suffix Patterns
+### File Naming (kebab-case with suffix)
 
 | Type | Suffix | Example |
 |------|--------|---------|
@@ -125,32 +135,43 @@ error-handler.ts            # Utilities
 | Repository | `.repository.ts` | `todo.repository.ts` |
 | Test | `.test.ts` | `todos.test.ts` |
 
-## Function Naming
+### Function Naming
 
-### Handler Functions
-
-Use descriptive names with `Handler` suffix:
+Handler functions use descriptive names with `Handler` suffix:
 
 ```typescript
 // Commands
 export async function createTodoHandler(...) {}
 export async function updateTodoHandler(...) {}
 export async function deleteTodoHandler(...) {}
-export async function toggleTodoHandler(...) {}
 
 // Queries
 export async function getAllTodosHandler(...) {}
 export async function getTodoByIdHandler(...) {}
 ```
 
-### Factory Functions
-
-Prefix with `create`:
+Factory functions prefix with `create`:
 
 ```typescript
 export const createValidationError = (details?: Record<string, unknown>) => ...
 export const createNotFoundError = (resource: string, id?: string) => ...
 export const createErrorHandler = (fastify: FastifyInstance) => ...
+```
+
+### Variable Naming
+
+Use descriptive names that explain purpose:
+
+```typescript
+// Good
+const userEmailAddress = request.body.email;
+const isOrganizationOwner = member.role === "owner";
+const passwordResetTokenExpiresAt = new Date(Date.now() + 3600000);
+
+// Bad
+const e = request.body.email;
+const isOwner = member.role === "owner"; // ambiguous - owner of what?
+const exp = new Date(Date.now() + 3600000);
 ```
 
 ## Handler Patterns
@@ -160,7 +181,7 @@ export const createErrorHandler = (fastify: FastifyInstance) => ...
 Handlers accept `unknown` type for input, validating inside:
 
 ```typescript
-// ✅ Good - accept unknown, validate inside
+// Good
 export async function createTodoHandler(
   input: unknown,
   logger: LoggerHelpers
@@ -169,12 +190,12 @@ export async function createTodoHandler(
   // ...
 }
 
-// ❌ Bad - typed input (validation happens elsewhere)
+// Bad
 export async function createTodoHandler(
   input: CreateTodoInput,
   logger: LoggerHelpers
 ): Promise<CreateTodoCommandResult> {
-  // No validation - trust the input
+  // No validation - trusts input blindly
 }
 ```
 
@@ -201,11 +222,11 @@ export async function createTodoHandler(
 Wrap returned data in a `data` property:
 
 ```typescript
-// ✅ Good - wrapped in data
+// Good
 return { data: todo };
 return { data: todos };
 
-// ❌ Bad - raw entity
+// Bad
 return todo;
 return todos;
 ```
@@ -217,10 +238,10 @@ return todos;
 Every route follows this pattern:
 
 ```typescript
-fastify.{method}("/{path}", async (request, reply) => {
+fastify.post("/", async (request, reply) => {
   try {
-    const result = await {handler}({params}, fastify.logger);
-    return reply.status({statusCode}).send(result);
+    const result = await createTodoHandler(request.body, fastify.logger);
+    return reply.status(201).send(result);
   } catch (error) {
     return handleError(error, reply);
   }
@@ -232,7 +253,7 @@ fastify.{method}("/{path}", async (request, reply) => {
 Keep route handlers thin - delegate to command/query handlers:
 
 ```typescript
-// ✅ Good - delegate to handler
+// Good
 fastify.post("/", async (request, reply) => {
   try {
     const result = await createTodoHandler(request.body, fastify.logger);
@@ -242,7 +263,7 @@ fastify.post("/", async (request, reply) => {
   }
 });
 
-// ❌ Bad - inline business logic
+// Bad
 fastify.post("/", async (request, reply) => {
   const parseResult = CreateTodoInputSchema.safeParse(request.body);
   if (!parseResult.success) {
@@ -281,11 +302,11 @@ import type { LoggerHelpers } from "../../../plugins/logger";
 Never create `AppError` directly in handlers:
 
 ```typescript
-// ✅ Good - use factory
+// Good
 throw createValidationError({ fieldErrors: errors.fieldErrors });
 throw createNotFoundError("Todo", id);
 
-// ❌ Bad - direct instantiation
+// Bad
 throw new AppError("VALIDATION_ERROR", undefined, { fieldErrors });
 ```
 
@@ -316,15 +337,15 @@ export const todoRepository = {
 
 ### Async Methods
 
-All repository methods are async (ready for database):
+All repository methods are async:
 
 ```typescript
-// ✅ Good - async
+// Good
 findById: async (id: string): Promise<Todo | undefined> => {
   return todoStore.get(id);
 }
 
-// ❌ Bad - sync
+// Bad
 findById: (id: string): Todo | undefined => {
   return todoStore.get(id);
 }
@@ -341,32 +362,27 @@ In handlers, validate in this order:
 
 ```typescript
 export async function updateTodoHandler(id: unknown, input: unknown, logger: LoggerHelpers) {
-  // 1. Validate ID
   const idParseResult = TodoIdParamSchema.safeParse({ id });
   if (!idParseResult.success) {
     throw createValidationError({ fieldErrors: idParseResult.error.flatten().fieldErrors });
   }
 
-  // 2. Check exists
-  const existing = await todoRepository.findById(idParseResult.data.id);
-  if (!existing) {
+  const existingTodo = await todoRepository.findById(idParseResult.data.id);
+  if (!existingTodo) {
     throw createNotFoundError("Todo", idParseResult.data.id);
   }
 
-  // 3. Validate body
-  const parseResult = UpdateTodoInputSchema.safeParse(input);
-  if (!parseResult.success) {
-    throw createValidationError({ fieldErrors: parseResult.error.flatten().fieldErrors });
+  const bodyParseResult = UpdateTodoInputSchema.safeParse(input);
+  if (!bodyParseResult.success) {
+    throw createValidationError({ fieldErrors: bodyParseResult.error.flatten().fieldErrors });
   }
 
-  // 4. Business rules
-  if (parseResult.data.title) {
-    await todoValidator.validateTitleUniqueness(parseResult.data.title, idParseResult.data.id);
+  if (bodyParseResult.data.title) {
+    await todoValidator.validateTitleUniqueness(bodyParseResult.data.title, idParseResult.data.id);
   }
 
-  // Execute update
-  const updated = await todoRepository.update(idParseResult.data.id, parseResult.data);
-  return { data: updated };
+  const updatedTodo = await todoRepository.update(idParseResult.data.id, bodyParseResult.data);
+  return { data: updatedTodo };
 }
 ```
 
@@ -374,10 +390,11 @@ export async function updateTodoHandler(id: unknown, input: unknown, logger: Log
 
 | Guideline | Do | Don't |
 |-----------|----|----|
+| Comments | No comments, use good names | Comments explaining code |
 | Type definitions | `type Todo = {...}` | `interface Todo {...}` |
 | Type imports | `import type { Todo }` | `import { Todo }` |
-| Route comments | No JSDoc | JSDoc on every method |
 | Handler input | `input: unknown` | `input: CreateTodoInput` |
 | Return structure | `{ data: todo }` | `todo` |
 | Error creation | `createNotFoundError()` | `new AppError()` |
 | Repository methods | `async` functions | sync functions |
+| Variable names | `userEmailAddress` | `email` or `e` |
