@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-/**
- * i18n Error Codes for Zod validation
- * These codes are used by clients to display localized error messages
- */
 export const ValidationErrorCodes = {
   TITLE_FIELD_REQUIRED: "TITLE_FIELD_REQUIRED",
   TITLE_FIELD_MAX_LENGTH: "TITLE_FIELD_MAX_LENGTH",
@@ -13,17 +9,11 @@ export const ValidationErrorCodes = {
   INVALID_DATE_FORMAT: "INVALID_DATE_FORMAT",
 } as const;
 
-/**
- * Priority levels for todos
- */
 export const PrioritySchema = z.enum(["low", "medium", "high"], {
   message: ValidationErrorCodes.INVALID_PRIORITY_VALUE,
 });
 export type Priority = z.infer<typeof PrioritySchema>;
 
-/**
- * Complete Todo entity schema
- */
 export const TodoSchema = z.object({
   id: z.string().uuid({ message: ValidationErrorCodes.INVALID_TODO_ID_FORMAT }),
   title: z
@@ -45,9 +35,6 @@ export const TodoSchema = z.object({
 
 export type Todo = z.infer<typeof TodoSchema>;
 
-/**
- * Schema for creating a new todo
- */
 export const CreateTodoInputSchema = z.object({
   title: z
     .string()
@@ -65,9 +52,6 @@ export const CreateTodoInputSchema = z.object({
 
 export type CreateTodoInput = z.infer<typeof CreateTodoInputSchema>;
 
-/**
- * Schema for updating an existing todo
- */
 export const UpdateTodoInputSchema = z.object({
   title: z
     .string()
@@ -88,18 +72,12 @@ export const UpdateTodoInputSchema = z.object({
 
 export type UpdateTodoInput = z.infer<typeof UpdateTodoInputSchema>;
 
-/**
- * Schema for todo ID parameter
- */
 export const TodoIdParamSchema = z.object({
   id: z.string().uuid({ message: ValidationErrorCodes.INVALID_TODO_ID_FORMAT }),
 });
 
 export type TodoIdParam = z.infer<typeof TodoIdParamSchema>;
 
-/**
- * Schema for query parameters when listing todos
- */
 export const ListTodosQuerySchema = z.object({
   completed: z
     .string()
@@ -114,9 +92,6 @@ export const ListTodosQuerySchema = z.object({
 
 export type ListTodosQuery = z.infer<typeof ListTodosQuerySchema>;
 
-/**
- * API response wrapper schema
- */
 export const TodoResponseSchema = z.object({
   success: z.boolean(),
   data: TodoSchema.optional(),

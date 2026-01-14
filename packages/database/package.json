@@ -4,15 +4,26 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/db/index.ts",
+    "./schema": "./src/schema/todo.ts"
   },
   "scripts": {
     "lint": "eslint .",
-    "check-types": "tsc --noEmit"
+    "dev": "drizzle-kit studio",
+    "check-types": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.1",
+    "postgres": "^3.4.8"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@types/node": "^25.0.8",
+    "drizzle-kit": "^0.31.8",
     "eslint": "9.39.1",
     "typescript": "5.9.2"
   }
