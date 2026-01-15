@@ -4,6 +4,7 @@
     "": {
       "name": "my-turborepo",
       "devDependencies": {
+        "jiti": "^2.6.1",
         "prettier": "^3.7.4",
         "turbo": "^2.7.4",
         "typescript": "5.9.2",
