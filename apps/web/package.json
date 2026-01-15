@@ -19,7 +19,8 @@
     "@tanstack/react-devtools": "0.7.0",
     "@tanstack/router-plugin": "1.132.0",
     "@tanstack/react-router-devtools": "1.132.0",
-    "@tanstack/react-router-ssr-query": "1.131.7"
+    "@tanstack/react-router-ssr-query": "1.131.7",
+    "@repo/ui": "workspace:*"
   },
   "devDependencies": {
     "vite": "7.1.7",
@@ -35,6 +36,8 @@
     "@testing-library/react": "16.2.0",
     "@tanstack/devtools-vite": "0.3.11",
     "eslint": "9.39.1",
-    "@repo/eslint-config": "*"
+    "@repo/eslint-config": "*",
+    "tailwindcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18"
   }
 }
