@@ -101,7 +101,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post("/change-password", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const result = await changePasswordHandler(
         request.body,
         request,
@@ -115,7 +115,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.patch("/profile", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const result = await updateProfileHandler(
         request.body,
         convertHeaders(request),
@@ -129,7 +129,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get("/organizations/:organizationId", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const result = await getOrganizationHandler(organizationId, request, fastify.logger);
       return reply.send(result);
@@ -140,7 +140,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.patch("/organizations/:organizationId", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const result = await updateOrganizationHandler(
         organizationId,
@@ -156,7 +156,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.delete("/organizations/:organizationId", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const result = await deleteOrganizationHandler(organizationId, request, fastify.logger);
       return reply.send(result);
@@ -167,7 +167,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post("/organizations/:organizationId/switch", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const result = await switchOrganizationHandler(
         organizationId,
@@ -183,7 +183,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get("/organizations/:organizationId/members", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const result = await listMembersHandler(organizationId, request, fastify.logger);
       return reply.send(result);
@@ -194,7 +194,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.delete("/organizations/:organizationId/members/:memberId", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId, memberId } = request.params as {
         organizationId: string;
         memberId: string;
@@ -212,7 +212,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post("/organizations/:organizationId/invitations", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const body = request.body as Record<string, unknown>;
       const result = await inviteMemberHandler(
@@ -228,7 +228,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get("/organizations/:organizationId/invitations", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId } = request.params as { organizationId: string };
       const result = await listInvitationsHandler(organizationId, request, fastify.logger);
       return reply.send(result);
@@ -239,7 +239,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.delete("/organizations/:organizationId/invitations/:invitationId", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const { organizationId, invitationId } = request.params as {
         organizationId: string;
         invitationId: string;
@@ -257,7 +257,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post("/invitations/accept", async (request, reply) => {
     try {
-      await requireAuth(request, reply);
+      await requireAuth(request);
       const result = await acceptInvitationHandler(request.body, request, fastify.logger);
       return reply.send(result);
     } catch (error) {
