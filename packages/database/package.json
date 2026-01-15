@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/db/index.ts",
     "./schema/todo": "./src/schema/todo.ts",
-    "./schema/auth": "./src/schema/auth.ts"
+    "./schema/auth": "./src/schema/auth.ts",
+    "./schema/roles": "./src/schema/roles.ts"
   },
   "scripts": {
     "lint": "eslint .",
