@@ -4,7 +4,6 @@ import { build } from "../helper";
 
 describe("Roles API", () => {
   test("GET /organizations/:orgId/roles should return roles", async (t) => {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     if (!process.env.DATABASE_URL) {
       t.skip("Skipping test because DATABASE_URL is not set");
       return;
