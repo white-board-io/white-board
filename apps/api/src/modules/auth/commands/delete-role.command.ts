@@ -18,7 +18,7 @@ export async function deleteRoleHandler(
   const roleIdParse = RoleIdParamSchema.safeParse({ roleId });
 
   if (!orgIdParse.success || !roleIdParse.success) {
-      throw createValidationError({ fieldErrors: {} }); // Simplify error for now
+      throw createValidationError({ fieldErrors: {} });
   }
   const orgId = orgIdParse.data.organizationId;
   const targetRoleId = roleIdParse.data.roleId;
@@ -36,7 +36,7 @@ export async function deleteRoleHandler(
   }
 
   if (targetRole.type === "system") {
-    throw createForbiddenError("Cannot delete system roles");
+    throw createForbiddenError("ERR_SYSTEM_ROLE_DELETE");
   }
 
   await db.delete(role).where(eq(role.id, targetRoleId));

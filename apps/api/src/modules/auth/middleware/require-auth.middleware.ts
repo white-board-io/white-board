@@ -78,9 +78,7 @@ export async function requirePermission(
   const allowed = await hasPermission(organizationId, membership.role, resource, action);
 
   if (!allowed) {
-    throw createForbiddenError(
-      `Role '${membership.role}' does not have '${action}' permission on '${resource}'`
-    );
+    throw createForbiddenError("ERR_INSUFFICIENT_PERMISSIONS");
   }
 
   return membership;

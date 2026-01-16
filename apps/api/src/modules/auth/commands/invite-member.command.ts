@@ -66,7 +66,7 @@ export async function inviteMemberHandler(
     .limit(1);
 
   if (!targetRole) {
-    throw createValidationError({ fieldErrors: { role: ["Role does not exist in this organization"] } });
+    throw createValidationError({ fieldErrors: { role: ["ERR_ROLE_NOT_FOUND"] } });
   }
 
   const existingUser = await db

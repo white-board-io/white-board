@@ -7,7 +7,7 @@ import {
 } from "../schemas/role.schema";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
-import { createValidationError, createConflictError } from "../../../shared/errors/app-error";
+import { createValidationError, createDuplicateError } from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -39,7 +39,7 @@ export async function createRoleHandler(
     .limit(1);
 
   if (existingRole.length > 0) {
-    throw createConflictError(`Role '${data.name}' already exists in this organization`);
+    throw createDuplicateError("Role", "name", data.name);
   }
 
   const [newRole] = await db
