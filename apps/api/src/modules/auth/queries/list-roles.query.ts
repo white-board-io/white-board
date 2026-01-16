@@ -10,7 +10,8 @@ import type { LoggerHelpers } from "../../../plugins/logger";
 export async function listRolesHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _logger: LoggerHelpers
 ) {
   const idParse = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!idParse.success) {
@@ -35,6 +36,7 @@ export async function listRolesHandler(
     .where(eq(role.organizationId, orgId));
 
   // Aggregate
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const roleMap = new Map<string, any>();
 
   for (const row of rows) {

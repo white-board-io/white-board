@@ -4,11 +4,13 @@ import { build } from "../helper";
 
 describe("Roles API", () => {
   test("GET /organizations/:orgId/roles should return roles", async (t) => {
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     if (!process.env.DATABASE_URL) {
       t.skip("Skipping test because DATABASE_URL is not set");
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const app = await build(t);
 
     // In a real test, we would:

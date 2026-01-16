@@ -30,6 +30,7 @@ export async function seedOrganizationRoles(
       // 2. Create permissions
       // Access statements from the role definition.
       // Based on better-auth access control implementation, statements are available on the role object.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const statements = (roleDef as any).statements as Record<string, string[]>;
 
       if (!statements) {

@@ -1,10 +1,10 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyRequest } from "fastify";
 import { createUnauthorizedError, createForbiddenError } from "../../../shared/errors/app-error";
 import { db, eq, and } from "@repo/database";
 import { member } from "@repo/database/schema/auth";
 import { role, permission } from "@repo/database/schema/roles";
 
-export async function requireAuth(request: FastifyRequest, _reply: FastifyReply) {
+export async function requireAuth(request: FastifyRequest) {
   if (!request.user || !request.session) {
     throw createUnauthorizedError();
   }
