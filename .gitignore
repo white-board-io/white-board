@@ -52,3 +52,7 @@ yarn-error.log*
 \#*\#
 /.emacs.desktop
 /.emacs.desktop.lock
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
