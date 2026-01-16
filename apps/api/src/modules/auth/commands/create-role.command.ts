@@ -3,7 +3,6 @@ import { db, eq, and } from "@repo/database";
 import { role, permission } from "@repo/database/schema/roles";
 import {
   CreateRoleInputSchema,
-  type CreateRoleInput,
 } from "../schemas/role.schema";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";

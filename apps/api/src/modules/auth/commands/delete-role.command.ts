@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { db, eq, and } from "@repo/database";
 import { role } from "@repo/database/schema/roles";
 import { RoleIdParamSchema } from "../schemas/role.schema";
