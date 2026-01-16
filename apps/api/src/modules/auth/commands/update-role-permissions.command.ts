@@ -1,12 +1,11 @@
 import { z } from "zod";
-import { db, eq, and } from "@repo/database";
-import { role, permission } from "@repo/database/schema/roles";
 import {
   UpdateRolePermissionsInputSchema,
   RoleIdParamSchema,
 } from "../schemas/role.schema";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
+import { roleRepository } from "../repository/role.repository";
 import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
@@ -39,28 +38,13 @@ export async function updateRolePermissionsHandler(
   }
   const data = parseResult.data;
 
-  const [targetRole] = await db
-    .select()
-    .from(role)
-    .where(and(eq(role.id, targetRoleId), eq(role.organizationId, orgId)))
-    .limit(1);
+  const targetRole = await roleRepository.findById(orgId, targetRoleId);
 
   if (!targetRole) {
     throw createNotFoundError("Role", targetRoleId);
   }
 
-  await db.transaction(async (tx) => {
-    await tx.delete(permission).where(eq(permission.roleId, targetRoleId));
-
-    if (data.permissions.length > 0) {
-      const permissionValues = data.permissions.map((p) => ({
-        roleId: targetRoleId,
-        resource: p.resource,
-        actions: p.actions,
-      }));
-      await tx.insert(permission).values(permissionValues);
-    }
-  });
+  await roleRepository.updatePermissions(orgId, targetRoleId, data.permissions);
 
   logger.info("Role permissions updated", { roleId: targetRoleId, organizationId: orgId });
 

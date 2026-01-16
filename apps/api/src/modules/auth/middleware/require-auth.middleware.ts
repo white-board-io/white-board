@@ -4,7 +4,7 @@ import { db, eq, and } from "@repo/database";
 import { member } from "@repo/database/schema/auth";
 import { role, permission } from "@repo/database/schema/roles";
 
-export async function requireAuth(request: FastifyRequest) {
+export async function requireAuth(request: FastifyRequest, _reply?: unknown) {
   if (!request.user || !request.session) {
     throw createUnauthorizedError();
   }

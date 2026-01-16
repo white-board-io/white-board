@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { db, eq, and } from "@repo/database";
 import { invitation, member, user, organization } from "@repo/database/schema/auth";
-import { role } from "@repo/database/schema/roles";
 import { InviteMemberInputSchema, type InviteMemberInput } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
+import { roleValidator } from "../validators/role.validator";
 import {
   createValidationError,
   createNotFoundError,
@@ -54,20 +54,7 @@ export async function inviteMemberHandler(
     throw createNotFoundError("Organization", validatedInput.organizationId);
   }
 
-  const [targetRole] = await db
-    .select()
-    .from(role)
-    .where(
-      and(
-        eq(role.organizationId, validatedInput.organizationId),
-        eq(role.name, validatedInput.role)
-      )
-    )
-    .limit(1);
-
-  if (!targetRole) {
-    throw createValidationError({ fieldErrors: { role: ["ERR_ROLE_NOT_FOUND"] } });
-  }
+  await roleValidator.validateRoleExists(validatedInput.organizationId, validatedInput.role);
 
   const existingUser = await db
     .select()

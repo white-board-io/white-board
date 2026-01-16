@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { db, eq } from "@repo/database";
-import { role, permission } from "@repo/database/schema/roles";
+import { roleRepository } from "../repository/role.repository";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
 import { createValidationError } from "../../../shared/errors/app-error";
@@ -10,7 +9,6 @@ import type { LoggerHelpers } from "../../../plugins/logger";
 export async function listRolesHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _logger: LoggerHelpers
 ) {
   const idParse = OrganizationIdParamSchema.safeParse({ organizationId });
@@ -19,21 +17,9 @@ export async function listRolesHandler(
   }
   const orgId = idParse.data.organizationId;
 
-  // View roles might need less permission, e.g. member:read?
-  // But let's stick to requireOrgMembership and maybe 'member:read' or just membership.
-  // The logic says "user to customize permissions".
-  // Let's use `member:read` as a proxy for "reading org config" or create a new resource permission.
-  // For now, let's require 'member:read' which all staff/teachers have.
   await requirePermission(request, orgId, "member", "read");
 
-  const rows = await db
-    .select({
-        role: role,
-        permission: permission,
-    })
-    .from(role)
-    .leftJoin(permission, eq(role.id, permission.roleId))
-    .where(eq(role.organizationId, orgId));
+  const rows = await roleRepository.listByOrg(orgId);
 
   // Aggregate
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

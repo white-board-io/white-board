@@ -1,9 +1,9 @@
-import { db, eq, and } from "@repo/database";
-import { role } from "@repo/database/schema/roles";
+import { roleRepository } from "../repository/role.repository";
+import { roleValidator } from "../validators/role.validator";
 import { RoleIdParamSchema } from "../schemas/role.schema";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
-import { createValidationError, createNotFoundError, createForbiddenError } from "../../../shared/errors/app-error";
+import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -24,21 +24,15 @@ export async function deleteRoleHandler(
 
   await requirePermission(request, orgId, "organization", "update");
 
-  const [targetRole] = await db
-    .select()
-    .from(role)
-    .where(and(eq(role.id, targetRoleId), eq(role.organizationId, orgId)))
-    .limit(1);
+  const targetRole = await roleRepository.findById(orgId, targetRoleId);
 
   if (!targetRole) {
     throw createNotFoundError("Role", targetRoleId);
   }
 
-  if (targetRole.type === "system") {
-    throw createForbiddenError("ERR_SYSTEM_ROLE_DELETE");
-  }
+  roleValidator.validateSystemRoleDeletion(targetRole.type);
 
-  await db.delete(role).where(eq(role.id, targetRoleId));
+  await roleRepository.delete(orgId, targetRoleId);
 
   logger.info("Role deleted", { roleId: targetRoleId, organizationId: orgId });
 
