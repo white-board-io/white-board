@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
-    "@types/node": "22.10.2",
+    "@types/node": "25.0.9",
     "@types/uuid": "^11.0.0",
     "c8": "10.1.2",
     "concurrently": "9.0.0",
