@@ -8,20 +8,27 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 
-export const user = pgTable("user", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull(),
-  emailVerified: boolean("email_verified").default(false).notNull(),
-  image: text("image"),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  isDeleted: boolean("is_deleted").default(false).notNull(),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const user = pgTable(
+  "user",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    emailVerified: boolean("email_verified").default(false).notNull(),
+    image: text("image"),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    // Index for faster lookups during authentication
+    index("user_email_idx").on(table.email),
+  ]
+);
 
 export type UserEntity = typeof user.$inferSelect;
 export type NewUserEntity = typeof user.$inferInsert;

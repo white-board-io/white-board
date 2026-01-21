@@ -15,6 +15,13 @@
       "when": 1768406380834,
       "tag": "0001_equal_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768969475070,
+      "tag": "0002_kind_triton",
+      "breakpoints": true
     }
   ]
 }
