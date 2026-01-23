@@ -15,12 +15,12 @@
   },
   "dependencies": {
     "@repo/database": "workspace:*",
-    "better-auth": "^1.2.5"
+    "better-auth": "1.2.5"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.10.2",
+    "@types/node": "22.10.2",
     "eslint": "9.39.1",
     "typescript": "5.9.3"
   }
