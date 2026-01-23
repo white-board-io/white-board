@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { db, eq } from "@repo/database";
+import { db, eq, and, sql } from "@repo/database";
 import { member, user, organization } from "@repo/database/schema/auth";
-import { OrganizationIdParamSchema } from "../schemas/auth.schema";
+import { OrganizationIdParamSchema, ListMembersQuerySchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
 import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
@@ -19,6 +19,12 @@ export type MemberInfo = {
 
 export type ListMembersResult = {
   members: MemberInfo[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 };
 
 export async function listMembersHandler(
@@ -36,6 +42,12 @@ export async function listMembersHandler(
 
   const validatedOrgId = parseResult.data.organizationId;
 
+  const queryParseResult = ListMembersQuerySchema.safeParse(request.query ?? {});
+  const { page, limit } = queryParseResult.success
+    ? queryParseResult.data
+    : { page: 1, limit: 10 };
+  const offset = (page - 1) * limit;
+
   await requirePermission(request, validatedOrgId, "member", "read");
 
   const [org] = await db
@@ -48,6 +60,16 @@ export async function listMembersHandler(
     throw createNotFoundError("Organization", validatedOrgId);
   }
 
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(member)
+    .innerJoin(user, eq(member.userId, user.id))
+    .where(
+      and(eq(member.organizationId, validatedOrgId), eq(user.isDeleted, false))
+    );
+
+  const totalCount = Number(countResult?.count ?? 0);
+
   const membersData = await db
     .select({
       memberId: member.id,
@@ -57,15 +79,16 @@ export async function listMembersHandler(
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      isDeleted: user.isDeleted,
     })
     .from(member)
     .innerJoin(user, eq(member.userId, user.id))
-    .where(eq(member.organizationId, validatedOrgId));
+    .where(
+      and(eq(member.organizationId, validatedOrgId), eq(user.isDeleted, false))
+    )
+    .limit(limit)
+    .offset(offset);
 
-  const activeMembers = membersData.filter((m) => !m.isDeleted);
-
-  const members: MemberInfo[] = activeMembers.map((m) => ({
+  const members: MemberInfo[] = membersData.map((m) => ({
     id: m.memberId,
     userId: m.userId,
     email: m.email,
@@ -78,7 +101,18 @@ export async function listMembersHandler(
   logger.info("Members listed", {
     organizationId: validatedOrgId,
     count: members.length,
+    page,
+    limit,
+    total: totalCount,
   });
 
-  return { members };
+  return {
+    members,
+    meta: {
+      total: totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit),
+    },
+  };
 }

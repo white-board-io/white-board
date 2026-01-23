@@ -140,3 +140,10 @@ export const OrganizationIdParamSchema = z.object({
 });
 
 export type OrganizationIdParam = z.infer<typeof OrganizationIdParamSchema>;
+
+export const ListMembersQuerySchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(10),
+});
+
+export type ListMembersQuery = z.infer<typeof ListMembersQuerySchema>;
