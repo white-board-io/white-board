@@ -53,3 +53,7 @@ yarn-error.log*
 /.emacs.desktop
 /.emacs.desktop.lock
 apps/api/dist-test/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
