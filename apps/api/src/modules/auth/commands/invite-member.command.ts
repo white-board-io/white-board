@@ -3,6 +3,7 @@ import { db, eq, and } from "@repo/database";
 import { invitation, member, user, organization } from "@repo/database/schema/auth";
 import { InviteMemberInputSchema, type InviteMemberInput } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
+import { roleValidator } from "../validators/role.validator";
 import {
   createValidationError,
   createNotFoundError,
@@ -52,6 +53,8 @@ export async function inviteMemberHandler(
   if (!org || org.isDeleted) {
     throw createNotFoundError("Organization", validatedInput.organizationId);
   }
+
+  await roleValidator.validateRoleExists(validatedInput.organizationId, validatedInput.role);
 
   const existingUser = await db
     .select()

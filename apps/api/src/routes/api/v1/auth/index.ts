@@ -19,6 +19,7 @@ import { listInvitationsHandler } from "../../../../modules/auth/queries/list-in
 import { cancelInvitationHandler } from "../../../../modules/auth/commands/cancel-invitation.command";
 import { requireAuth } from "../../../../modules/auth/middleware/require-auth.middleware";
 import { createErrorHandler } from "../../../../shared/utils/error-handler";
+import rolesRoutes from "./roles";
 
 function convertHeaders(request: { headers: Record<string, string | string[] | undefined> }): Headers {
   const headers = new Headers();
@@ -264,6 +265,8 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       return handleError(error, reply);
     }
   });
+
+  await fastify.register(rolesRoutes, { prefix: "/organizations/:organizationId/roles" });
 };
 
 export default authRoutes;

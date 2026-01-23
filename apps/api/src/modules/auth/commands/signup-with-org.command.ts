@@ -6,6 +6,7 @@ import {
   SignUpWithOrgInputSchema,
   type SignUpWithOrgInput,
 } from "../schemas/auth.schema";
+import { seedOrganizationRoles } from "../utils/seed-roles";
 import { createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -89,6 +90,8 @@ export async function signUpWithOrgHandler(
     organizationId: newOrg.id,
     organizationName: newOrg.name,
   });
+
+  await seedOrganizationRoles(newOrg.id, logger);
 
   await db.insert(member).values({
     organizationId: newOrg.id,

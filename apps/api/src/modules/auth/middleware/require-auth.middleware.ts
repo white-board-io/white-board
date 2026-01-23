@@ -2,7 +2,8 @@ import type { FastifyRequest } from "fastify";
 import { createUnauthorizedError, createForbiddenError } from "../../../shared/errors/app-error";
 import { db, eq, and } from "@repo/database";
 import { member } from "@repo/database/schema/auth";
-import { roles, statement, type RoleName } from "@repo/auth/permissions";
+import { statement, type RoleName } from "@repo/auth/permissions";
+import {permission, role} from "@repo/database/schema/roles";
 
 export async function requireAuth(request: FastifyRequest) {
   if (!request.user || !request.session) {
@@ -42,19 +43,32 @@ export async function requireOrgMembership(
 type Resource = keyof typeof statement;
 type Action = string;
 
-export function hasPermission(
-  roleName: RoleName,
-  resource: Resource,
-  action: Action
-): boolean {
-  const role = roles[roleName];
-  if (!role) return false;
+export async function hasPermission(
+    organizationId: string,
+    roleName: string,
+    resource: string,
+    action: string
+): Promise<boolean> {
+    const [perm] = await db
+        .select({
+            actions: permission.actions,
+        })
+        .from(role)
+        .innerJoin(permission, eq(role.id, permission.roleId))
+        .where(
+            and(
+                eq(role.organizationId, organizationId),
+                eq(role.name, roleName),
+                eq(permission.resource, resource)
+            )
+        )
+        .limit(1);
 
-  const roleStatements = role.statements as Record<string, readonly string[]>;
-  const permissions = roleStatements[resource];
-  if (!permissions) return false;
+    if (!perm) return false;
 
-  return permissions.includes(action);
+    // actions is jsonb, typed as string[] in schema definition
+    const actions = perm.actions as string[];
+    return actions.includes(action);
 }
 
 export async function requirePermission(
@@ -64,11 +78,10 @@ export async function requirePermission(
   action: Action
 ): Promise<{ role: RoleName; memberId: string }> {
   const membership = await requireOrgMembership(request, organizationId);
+  const allowed = await hasPermission(organizationId, membership.role, resource, action);
 
-  if (!hasPermission(membership.role, resource, action)) {
-    throw createForbiddenError(
-      `Role '${membership.role}' does not have '${action}' permission on '${resource}'`
-    );
+  if (!allowed) {
+      throw createForbiddenError("ERR_INSUFFICIENT_PERMISSIONS");
   }
 
   return membership;

@@ -116,7 +116,7 @@ export const InviteMemberInputSchema = z.object({
   email: z.string()
     .min(1, { message: AuthValidationErrorCodes.EMAIL_REQUIRED })
     .email({ message: AuthValidationErrorCodes.EMAIL_INVALID }),
-  role: RoleEnum,
+  role: z.string().min(1, { message: AuthValidationErrorCodes.ROLE_INVALID }),
   organizationId: z.string().uuid({ message: AuthValidationErrorCodes.ORGANIZATION_ID_INVALID }),
 });
 
