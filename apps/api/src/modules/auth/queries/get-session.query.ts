@@ -1,5 +1,5 @@
 import { auth } from "@repo/auth";
-import { db, eq } from "@repo/database";
+import { db, eq, and } from "@repo/database";
 import { member, organization } from "@repo/database/schema/auth";
 import { createUnauthorizedError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
@@ -46,15 +46,14 @@ export async function getSessionHandler(
       orgSlug: organization.slug,
       orgType: organization.organizationType,
       orgLogo: organization.logo,
-      isDeleted: organization.isDeleted,
     })
     .from(member)
     .innerJoin(organization, eq(member.organizationId, organization.id))
-    .where(eq(member.userId, session.user.id));
+    .where(
+      and(eq(member.userId, session.user.id), eq(organization.isDeleted, false))
+    );
 
-  const activeOrganizations = userOrganizations.filter((org) => !org.isDeleted);
-
-  const organizations: OrganizationWithRole[] = activeOrganizations.map((org) => ({
+  const organizations: OrganizationWithRole[] = userOrganizations.map((org) => ({
     id: org.organizationId,
     name: org.orgName,
     slug: org.orgSlug,
