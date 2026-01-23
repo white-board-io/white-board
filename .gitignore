@@ -52,3 +52,4 @@ yarn-error.log*
 \#*\#
 /.emacs.desktop
 /.emacs.desktop.lock
+apps/api/dist-test/
