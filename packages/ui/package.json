@@ -50,6 +50,6 @@
     "@repo/eslint-config": "*",
     "@types/react-dom": "^19.2.0",
     "@repo/typescript-config": "*",
-    "@tailwindcss/postcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0"
   }
 }
