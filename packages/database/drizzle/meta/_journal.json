@@ -15,6 +15,13 @@
       "when": 1768406380834,
       "tag": "0001_equal_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768448828408,
+      "tag": "0002_smooth_gauntlet",
+      "breakpoints": true
     }
   ]
 }

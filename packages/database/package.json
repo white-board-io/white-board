@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/db/index.ts",
     "./schema/todo": "./src/schema/todo.ts",
-    "./schema/auth": "./src/schema/auth.ts"
+    "./schema/auth": "./src/schema/auth.ts",
+    "./schema/roles": "./src/schema/roles.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -26,6 +27,6 @@
     "@types/node": "^25.0.8",
     "drizzle-kit": "^0.31.8",
     "eslint": "9.39.1",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   }
 }

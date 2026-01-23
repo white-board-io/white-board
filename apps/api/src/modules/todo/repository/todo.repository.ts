@@ -5,7 +5,18 @@ import type {
 } from "../schemas/todo.schema";
 import { db, eq, desc, and, sql } from "@repo/database";
 import { todos } from "@repo/database/schema/todo";
-import { pickBy, identity } from "lodash";
+
+// Utility to remove undefined keys but preserve null/false/0
+// This replaces lodash.pickBy(obj, identity) which incorrectly removes falsy values
+const cleanObject = (obj: Record<string, unknown>) => {
+  const newObj: Record<string, unknown> = {};
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined) {
+      newObj[key] = obj[key];
+    }
+  });
+  return newObj;
+};
 
 export const todoRepository = {
   findAll: async (filters?: {
@@ -74,7 +85,7 @@ export const todoRepository = {
     input: UpdateTodoInput
   ): Promise<Todo | undefined> => {
     const updateData = {
-      ...pickBy(input, identity),
+      ...cleanObject(input as unknown as Record<string, unknown>),
       updatedAt: new Date(),
     };
 
