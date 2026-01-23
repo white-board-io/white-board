@@ -22,7 +22,6 @@ export async function createRoleHandler(
   }
   const orgId = idParse.data.organizationId;
 
-  // Require permission to update organization (implies managing roles)
   await requirePermission(request, orgId, "organization", "update");
 
   const parseResult = CreateRoleInputSchema.safeParse(input);
