@@ -1,4 +1,4 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyRequest } from "fastify";
 import { createUnauthorizedError, createForbiddenError } from "../../../shared/errors/app-error";
 import { db, eq, and } from "@repo/database";
 import { member } from "@repo/database/schema/auth";

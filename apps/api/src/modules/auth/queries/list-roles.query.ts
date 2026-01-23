@@ -9,8 +9,9 @@ import type { LoggerHelpers } from "../../../plugins/logger";
 export async function listRolesHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  _logger: LoggerHelpers
+  logger: LoggerHelpers
 ) {
+  logger.debug("ListRolesQuery received", { organizationId });
   const idParse = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!idParse.success) {
       throw createValidationError({ fieldErrors: z.flattenError(idParse.error).fieldErrors });
