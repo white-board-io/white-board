@@ -4,6 +4,8 @@ description: Multi-tenant educational platform for schools, colleges, and traini
 version: 1.0.0
 ---
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/white-board-io/white-board?utm_source=oss&utm_medium=github&utm_campaign=white-board-io%2Fwhite-board&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 # White Board
 
 Multi-tenant educational platform built with TypeScript, designed for schools, colleges, training institutes, and tuition centers.
