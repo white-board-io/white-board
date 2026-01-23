@@ -29,7 +29,7 @@
     "eslint": "9.39.1",
     "web-vitals": "5.1.0",
     "typescript": "5.9.2",
-    "@types/node": "22.10.2",
+    "@types/node": "25.0.10",
     "tailwindcss": "^4.1.18",
     "@types/react": "19.2.0",
     "@repo/eslint-config": "*",
