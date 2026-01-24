@@ -23,7 +23,7 @@ export class AppError extends Error {
     code: ErrorCode,
     formatArgs?: Record<string, string | number>,
     details?: Record<string, unknown>,
-    message?: string
+    message?: string,
   ) {
     super(message || code);
     this.name = "AppError";
@@ -66,13 +66,21 @@ export const createNotFoundError = (resource: string, id?: string) =>
 export const createDuplicateError = (
   resource: string,
   field: string,
-  value: string
+  value: string,
 ) => new AppError("DUPLICATE_RESOURCE", { resource, field, value });
 
 export const createUnauthorizedError = (message?: string) =>
-  new AppError("UNAUTHORIZED", undefined, undefined, message || "Authentication required");
+  new AppError(
+    "UNAUTHORIZED",
+    undefined,
+    undefined,
+    message || "Authentication required",
+  );
 
 export const createForbiddenError = (message?: string) =>
   new AppError("FORBIDDEN", undefined, undefined, message || "Access denied");
 
 export const createInternalError = () => new AppError("INTERNAL_ERROR");
+
+export const createAuthError = (message: string) =>
+  new AppError("UNAUTHORIZED", undefined, undefined, message);

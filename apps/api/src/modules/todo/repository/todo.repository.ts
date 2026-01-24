@@ -3,7 +3,7 @@ import type {
   CreateTodoInput,
   UpdateTodoInput,
 } from "../schemas/todo.schema";
-import { db, eq, desc, and, sql } from "@repo/database";
+import { db, eq, desc, sql } from "@repo/database";
 import { todos } from "@repo/database/schema/todo";
 
 // Utility to remove undefined keys but preserve null/false/0
@@ -23,23 +23,16 @@ export const todoRepository = {
     completed?: boolean;
     priority?: string;
   }): Promise<Todo[]> => {
-    const conditions = [];
+    const query = db.select().from(todos).orderBy(desc(todos.createdAt));
 
     if (filters?.completed !== undefined) {
-      conditions.push(eq(todos.completed, filters.completed));
+      query.where(eq(todos.completed, filters.completed));
     }
 
     if (filters?.priority) {
-      conditions.push(
-        eq(todos.priority, filters.priority as "low" | "medium" | "high")
+      query.where(
+        eq(todos.priority, filters.priority as "low" | "medium" | "high"),
       );
-    }
-
-    const query = db.select().from(todos).orderBy(desc(todos.createdAt));
-
-    if (conditions.length > 0) {
-      const results = await query.where(and(...conditions));
-      return results.map(mapTodoFromDb);
     }
 
     const results = await query;
@@ -82,7 +75,7 @@ export const todoRepository = {
 
   update: async (
     id: string,
-    input: UpdateTodoInput
+    input: UpdateTodoInput,
   ): Promise<Todo | undefined> => {
     const updateData = {
       ...cleanObject(input as unknown as Record<string, unknown>),

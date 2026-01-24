@@ -9,14 +9,19 @@ import { requireAuth } from "../../../../modules/auth/middleware/require-auth.mi
 const rolesRoutes: FastifyPluginAsync = async (fastify) => {
   const handleError = createErrorHandler(fastify);
 
-  fastify.addHook("preHandler", async (request, reply) => {
-      await requireAuth(request, reply);
+  fastify.addHook("preHandler", async (request) => {
+    await requireAuth(request);
   });
 
   fastify.post("/", async (request, reply) => {
     try {
       const { organizationId } = request.params as { organizationId: string };
-      const result = await createRoleHandler(organizationId, request.body, request, fastify.logger);
+      const result = await createRoleHandler(
+        organizationId,
+        request.body,
+        request,
+        fastify.logger,
+      );
       return reply.status(201).send(result);
     } catch (error) {
       return handleError(error, reply);
@@ -26,7 +31,11 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/", async (request, reply) => {
     try {
       const { organizationId } = request.params as { organizationId: string };
-      const result = await listRolesHandler(organizationId, request, fastify.logger);
+      const result = await listRolesHandler(
+        organizationId,
+        request,
+        fastify.logger,
+      );
       return reply.send(result);
     } catch (error) {
       return handleError(error, reply);
@@ -35,8 +44,17 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.patch("/:roleId", async (request, reply) => {
     try {
-      const { organizationId, roleId } = request.params as { organizationId: string, roleId: string };
-      const result = await updateRolePermissionsHandler(organizationId, roleId, request.body, request, fastify.logger);
+      const { organizationId, roleId } = request.params as {
+        organizationId: string;
+        roleId: string;
+      };
+      const result = await updateRolePermissionsHandler(
+        organizationId,
+        roleId,
+        request.body,
+        request,
+        fastify.logger,
+      );
       return reply.send(result);
     } catch (error) {
       return handleError(error, reply);
@@ -45,8 +63,16 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.delete("/:roleId", async (request, reply) => {
     try {
-      const { organizationId, roleId } = request.params as { organizationId: string, roleId: string };
-      const result = await deleteRoleHandler(organizationId, roleId, request, fastify.logger);
+      const { organizationId, roleId } = request.params as {
+        organizationId: string;
+        roleId: string;
+      };
+      const result = await deleteRoleHandler(
+        organizationId,
+        roleId,
+        request,
+        fastify.logger,
+      );
       return reply.send(result);
     } catch (error) {
       return handleError(error, reply);

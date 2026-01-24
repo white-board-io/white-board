@@ -19,7 +19,7 @@ export async function requireOrgMembership(
     throw createUnauthorizedError();
   }
 
-  const memberRecord = await db
+  const [memberRecord] = await db
     .select()
     .from(member)
     .where(
@@ -30,13 +30,13 @@ export async function requireOrgMembership(
     )
     .limit(1);
 
-  if (memberRecord.length === 0) {
+  if (!memberRecord) {
     throw createForbiddenError("User is not a member of this organization");
   }
 
   return {
-    role: memberRecord[0].role as RoleName,
-    memberId: memberRecord[0].id,
+    role: memberRecord.role as RoleName,
+    memberId: memberRecord.id,
   };
 }
 
