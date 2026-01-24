@@ -10,7 +10,7 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
   const handleError = createErrorHandler(fastify);
 
   fastify.addHook("preHandler", async (request, reply) => {
-      await requireAuth(request, reply);
+      await requireAuth(request);
   });
 
   fastify.post("/", async (request, reply) => {
