@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "main": "app.ts",
+  "type": "module",
   "directories": {
     "test": "test"
   },
@@ -11,7 +12,8 @@
     "start": "npm run build:ts && fastify start -l info -p 8000 dist/app.js",
     "build:ts": "tsc",
     "watch:ts": "tsc -w",
-    "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
+    "dev": "bun --watch src/server.ts",
+    "dev:legacy": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
     "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -p 8000 -P dist/app.js",
     "lint": "eslint --max-warnings 0"
   },
