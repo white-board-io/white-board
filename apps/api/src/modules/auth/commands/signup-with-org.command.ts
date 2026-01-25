@@ -1,13 +1,17 @@
 import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { auth } from "@repo/auth";
 import { db, eq } from "@repo/database";
-import { organization, member, session } from "@repo/database/schema/auth";
+import {
+  organization,
+  member,
+  session,
+  user,
+} from "@repo/database/schema/auth";
 import {
   SignUpWithOrgInputSchema,
   type SignUpWithOrgInput,
 } from "../schemas/auth.schema";
 import { seedOrganizationRoles } from "../utils/seed-roles";
-// removed createValidationError
 import type { LoggerHelpers } from "../../../plugins/logger";
 
 import type { ServiceResult } from "../../../utils/ServiceResult";
@@ -58,6 +62,22 @@ export async function signUpWithOrgHandler(
     organizationName,
     organizationType,
   } = validatedInput;
+
+  const existingUser = await db.query.user.findFirst({
+    where: eq(user.email, email),
+  });
+
+  if (existingUser) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "USER_ALREADY_EXISTS",
+          message: "User with this email already exists",
+        },
+      ],
+    };
+  }
 
   const signUpResponse = await auth.api.signUpEmail({
     body: {

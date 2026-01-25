@@ -52,19 +52,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         body: {
           type: "object",
           required: [
-            "firstName",
-            "lastName",
             "email",
+            "lastName",
+            "firstName",
             "password",
             "organizationName",
             "organizationType",
           ],
           properties: {
-            firstName: { type: "string", minLength: 1 },
             lastName: { type: "string", minLength: 1 },
             email: { type: "string", format: "email" },
-            password: { type: "string", minLength: 8, maxLength: 128 },
+            firstName: { type: "string", minLength: 1 },
             organizationName: { type: "string", minLength: 1 },
+            password: { type: "string", minLength: 8, maxLength: 128 },
             organizationType: {
               type: "string",
               enum: [
@@ -81,49 +81,33 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           201: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              user: {
                 type: "object",
                 properties: {
-                  user: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      firstName: { type: "string" },
-                      lastName: { type: "string" },
-                      email: { type: "string" },
-                    },
-                  },
-                  organization: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      name: { type: "string" },
-                      organizationType: { type: "string" },
-                    },
-                  },
+                  id: { type: "string" },
+                  firstName: { type: "string" },
+                  lastName: { type: "string" },
+                  email: { type: "string" },
                 },
               },
-              error: {
+              organization: {
                 type: "object",
                 properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
+                  id: { type: "string" },
+                  name: { type: "string" },
+                  organizationType: { type: "string" },
                 },
               },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -145,7 +129,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (result.responseHeaders) {
           forwardAuthHeaders(result.responseHeaders, reply);
         }
-        return reply.status(201).send({ success: true, data: result.data });
+        return reply.status(201).send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -171,52 +155,36 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              user: {
                 type: "object",
                 properties: {
-                  user: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      firstName: { type: "string" },
-                      lastName: { type: "string" },
-                      email: { type: "string" },
-                    },
-                  },
-                  organizations: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        role: { type: "string" },
-                      },
-                    },
-                  },
+                  id: { type: "string" },
+                  firstName: { type: "string" },
+                  lastName: { type: "string" },
+                  email: { type: "string" },
                 },
               },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
+              organizations: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    role: { type: "string" },
+                  },
                 },
               },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -238,7 +206,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (result.responseHeaders) {
           forwardAuthHeaders(result.responseHeaders, reply);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -258,27 +226,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -299,7 +256,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (result.responseHeaders) {
           forwardAuthHeaders(result.responseHeaders, reply);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -318,52 +275,36 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              user: {
                 type: "object",
                 properties: {
-                  user: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      firstName: { type: "string" },
-                      lastName: { type: "string" },
-                      email: { type: "string" },
-                    },
-                  },
-                  organizations: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        role: { type: "string" },
-                      },
-                    },
-                  },
+                  id: { type: "string" },
+                  firstName: { type: "string" },
+                  lastName: { type: "string" },
+                  email: { type: "string" },
                 },
               },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
+              organizations: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    role: { type: "string" },
+                  },
                 },
               },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -380,7 +321,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -406,27 +347,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -443,7 +373,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -470,27 +400,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -504,7 +423,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -532,27 +451,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -571,7 +479,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -599,37 +507,21 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
-                type: "object",
-                properties: {
-                  id: { type: "string" },
-                  firstName: { type: "string" },
-                  lastName: { type: "string" },
-                  email: { type: "string" },
-                  image: { type: ["string", "null"] },
-                },
-              },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
+              id: { type: "string" },
+              firstName: { type: "string" },
+              lastName: { type: "string" },
+              email: { type: "string" },
+              image: { type: ["string", "null"] },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -648,7 +540,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -674,8 +566,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              organization: {
                 type: "object",
                 properties: {
                   id: { type: "string" },
@@ -694,26 +585,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
                   description: { type: ["string", "null"] },
                 },
               },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
+              role: { type: "string" },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -733,7 +615,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -787,8 +669,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              organization: {
                 type: "object",
                 properties: {
                   id: { type: "string" },
@@ -807,26 +688,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
                   description: { type: ["string", "null"] },
                 },
               },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -847,7 +718,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -874,27 +745,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -914,7 +774,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -940,28 +800,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
+              activeOrganizationId: { type: "string" },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -982,7 +831,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1008,8 +857,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              members: {
                 type: "array",
                 items: {
                   type: "object",
@@ -1022,26 +870,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
                   },
                 },
               },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -1061,7 +899,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1089,27 +927,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -1132,7 +959,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1166,36 +993,25 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           201: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              invitation: {
                 type: "object",
                 properties: {
                   id: { type: "string" },
                   email: { type: "string" },
                   role: { type: "string" },
-                  organizationId: { type: "string" },
-                },
-              },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
+                  expiresAt: { type: "string", format: "date-time" },
                 },
               },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -1216,7 +1032,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.status(201).send({ success: true, data: result.data });
+        return reply.status(201).send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1242,8 +1058,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           200: {
             type: "object",
             properties: {
-              success: { type: "boolean" },
-              data: {
+              invitations: {
                 type: "array",
                 items: {
                   type: "object",
@@ -1251,30 +1066,21 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
                     id: { type: "string" },
                     email: { type: "string" },
                     role: { type: "string" },
-                    organizationId: { type: "string" },
+                    status: { type: "string" },
+                    inviterEmail: { type: "string" },
                   },
-                },
-              },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
                 },
               },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -1294,7 +1100,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1322,27 +1128,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -1365,7 +1160,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1392,27 +1187,16 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
-              },
             },
           },
           400: {
-            type: "object",
-            properties: {
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
-                },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                path: { type: "array", items: { type: ["string", "number"] } },
               },
             },
           },
@@ -1431,7 +1215,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!result.isSuccess) {
           return reply.status(400).send(result.errors);
         }
-        return reply.send({ success: true, data: result.data });
+        return reply.send(result.data);
       } catch (error) {
         return handleError(error, reply);
       }
