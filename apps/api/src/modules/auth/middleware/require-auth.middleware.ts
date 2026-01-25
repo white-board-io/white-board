@@ -1,9 +1,12 @@
 import type { FastifyRequest } from "fastify";
-import { createUnauthorizedError, createForbiddenError } from "../../../shared/errors/app-error";
+import {
+  createUnauthorizedError,
+  createForbiddenError,
+} from "../../../shared/errors/app-error";
 import { db, eq, and } from "@repo/database";
 import { member } from "@repo/database/schema/auth";
 import { statement, type RoleName } from "@repo/auth/permissions";
-import {permission, role} from "@repo/database/schema/roles";
+import { permission, role } from "@repo/database/schema/roles";
 
 export async function requireAuth(request: FastifyRequest) {
   if (!request.user || !request.session) {
@@ -11,9 +14,31 @@ export async function requireAuth(request: FastifyRequest) {
   }
 }
 
+export async function requireActiveOrganization(
+  request: FastifyRequest,
+): Promise<{ organizationId: string; role: RoleName; memberId: string }> {
+  if (!request.user || !request.session) {
+    throw createUnauthorizedError();
+  }
+
+  const activeOrgId = request.session.activeOrganizationId;
+  if (!activeOrgId) {
+    throw createForbiddenError(
+      "No active organization set. Please select an organization.",
+    );
+  }
+
+  const membership = await requireOrgMembership(request, activeOrgId);
+
+  return {
+    organizationId: activeOrgId,
+    ...membership,
+  };
+}
+
 export async function requireOrgMembership(
   request: FastifyRequest,
-  organizationId: string
+  organizationId: string,
 ): Promise<{ role: RoleName; memberId: string }> {
   if (!request.user) {
     throw createUnauthorizedError();
@@ -25,8 +50,8 @@ export async function requireOrgMembership(
     .where(
       and(
         eq(member.userId, request.user.id),
-        eq(member.organizationId, organizationId)
-      )
+        eq(member.organizationId, organizationId),
+      ),
     )
     .limit(1);
 
@@ -44,44 +69,49 @@ type Resource = keyof typeof statement;
 type Action = string;
 
 export async function hasPermission(
-    organizationId: string,
-    roleName: string,
-    resource: string,
-    action: string
+  organizationId: string,
+  roleName: string,
+  resource: string,
+  action: string,
 ): Promise<boolean> {
-    const [perm] = await db
-        .select({
-            actions: permission.actions,
-        })
-        .from(role)
-        .innerJoin(permission, eq(role.id, permission.roleId))
-        .where(
-            and(
-                eq(role.organizationId, organizationId),
-                eq(role.name, roleName),
-                eq(permission.resource, resource)
-            )
-        )
-        .limit(1);
+  const [perm] = await db
+    .select({
+      actions: permission.actions,
+    })
+    .from(role)
+    .innerJoin(permission, eq(role.id, permission.roleId))
+    .where(
+      and(
+        eq(role.name, roleName),
+        eq(permission.resource, resource),
+        eq(role.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
 
-    if (!perm) return false;
+  if (!perm) return false;
 
-    // actions is jsonb, typed as string[] in schema definition
-    const actions = perm.actions as string[];
-    return actions.includes(action);
+  // actions is jsonb, typed as string[] in schema definition
+  const actions = perm.actions as string[];
+  return actions.includes(action);
 }
 
 export async function requirePermission(
   request: FastifyRequest,
   organizationId: string,
   resource: Resource,
-  action: Action
+  action: Action,
 ): Promise<{ role: RoleName; memberId: string }> {
   const membership = await requireOrgMembership(request, organizationId);
-  const allowed = await hasPermission(organizationId, membership.role, resource, action);
+  const allowed = await hasPermission(
+    organizationId,
+    membership.role,
+    resource,
+    action,
+  );
 
   if (!allowed) {
-      throw createForbiddenError("ERR_INSUFFICIENT_PERMISSIONS");
+    throw createForbiddenError("ERR_INSUFFICIENT_PERMISSIONS");
   }
 
   return membership;

@@ -2,7 +2,10 @@ import { z } from "zod";
 import { auth } from "@repo/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requireOrgMembership } from "../middleware/require-auth.middleware";
-import { createValidationError, createUnauthorizedError } from "../../../shared/errors/app-error";
+import {
+  createValidationError,
+  createUnauthorizedError,
+} from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -14,7 +17,7 @@ export async function switchOrganizationHandler(
   organizationId: unknown,
   request: FastifyRequest,
   headers: Headers,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<SwitchOrganizationResult> {
   logger.debug("SwitchOrganizationCommand received", { organizationId });
 

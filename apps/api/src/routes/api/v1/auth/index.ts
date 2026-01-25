@@ -928,7 +928,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        return reply.send(result);
+        return reply.send({ success: true, data: result });
       } catch (error) {
         return handleError(error, reply);
       }

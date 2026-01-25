@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { auth } from "@repo/auth";
-import { db } from "@repo/database";
-import { organization, member } from "@repo/database/schema/auth";
+import { db, eq } from "@repo/database";
+import { organization, member, session } from "@repo/database/schema/auth";
 import {
   SignUpWithOrgInputSchema,
   type SignUpWithOrgInput,
@@ -118,6 +118,16 @@ export async function signUpWithOrgHandler(
     });
 
     return newOrg;
+  });
+
+  await db
+    .update(session)
+    .set({ activeOrganizationId: result.id })
+    .where(eq(session.userId, userId));
+
+  logger.info("Active organization set for new user", {
+    userId,
+    organizationId: result.id,
   });
 
   return {
