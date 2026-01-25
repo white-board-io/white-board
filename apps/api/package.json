@@ -3,17 +3,19 @@
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "main": "app.ts",
+  "type": "module",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "lint": "eslint",
     "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
     "start": "npm run build:ts && fastify start -l info -p 8000 dist/app.js",
     "build:ts": "tsc",
     "watch:ts": "tsc -w",
-    "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
-    "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -p 8000 -P dist/app.js",
-    "lint": "eslint --max-warnings 0"
+    "dev": "bun --watch src/server.ts",
+    "dev:legacy": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
+    "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -p 8000 -P dist/app.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +24,8 @@
     "@fastify/autoload": "6.3.1",
     "@fastify/cors": "11.2.0",
     "@fastify/sensible": "6.0.4",
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger-ui": "^5.2.4",
     "@repo/auth": "workspace:*",
     "@repo/database": "workspace:*",
     "fastify": "5.7.0",

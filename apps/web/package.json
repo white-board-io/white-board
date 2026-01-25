@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "lint": "eslint",
     "test": "vitest run",
     "build": "vite build",
     "preview": "vite preview",
-    "dev": "vite dev --port 3000",
-    "lint": "eslint --max-warnings 0"
+    "dev": "vite dev --port 3000"
   },
   "dependencies": {
     "react": "19.2.0",

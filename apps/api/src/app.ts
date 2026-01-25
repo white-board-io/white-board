@@ -1,6 +1,10 @@
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import AutoLoad, { AutoloadPluginOptions } from "@fastify/autoload";
 import { FastifyPluginAsync, FastifyServerOptions } from "fastify";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface AppOptions
   extends FastifyServerOptions, Partial<AutoloadPluginOptions> {}
@@ -9,11 +13,62 @@ const options: AppOptions = {};
 
 const app: FastifyPluginAsync<AppOptions> = async (
   fastify,
-  opts
+  opts,
 ): Promise<void> => {
-  // Place here your custom code!
+  // Swagger configuration
+  void fastify.register(import("@fastify/swagger"), {
+    swagger: {
+      info: {
+        title: "API Documentation",
+        description:
+          "Fastify-based REST API following CQRS pattern with file-based routing",
+        version: "1.0.0",
+      },
+      externalDocs: {
+        url: "https://github.com/white-board-io/white-board",
+        description: "Find more info here",
+      },
+      host: "localhost:8000",
+      schemes: ["http"],
+      consumes: ["application/json"],
+      produces: ["application/json"],
+      tags: [
+        { name: "auth", description: "Authentication endpoints" },
+        { name: "todos", description: "Todo management endpoints" },
+        {
+          name: "roles",
+          description: "Role and permission management endpoints",
+        },
+      ],
+      securityDefinitions: {
+        bearerAuth: {
+          type: "apiKey",
+          name: "Authorization",
+          in: "header",
+          description: "Bearer token authentication",
+        },
+      },
+    },
+  });
 
-  // Do not touch the following lines
+  // Swagger UI configuration
+  void fastify.register(import("@fastify/swagger-ui"), {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "full",
+      deepLinking: false,
+    },
+    uiHooks: {
+      onRequest: function (request, reply, next) {
+        next();
+      },
+      preHandler: function (request, reply, next) {
+        next();
+      },
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+  });
 
   // This loads all plugins defined in plugins
   // those should be support plugins that are reused
