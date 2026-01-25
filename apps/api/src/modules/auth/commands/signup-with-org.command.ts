@@ -32,7 +32,7 @@ export type SignUpWithOrgResult = {
 export async function signUpWithOrgHandler(
   input: unknown,
   headers: Headers,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<SignUpWithOrgResult> {
   logger.debug("SignUpWithOrgCommand received", { input });
 
@@ -44,8 +44,14 @@ export async function signUpWithOrgHandler(
   }
 
   const validatedInput: SignUpWithOrgInput = parseResult.data;
-  const { firstName, lastName, email, password, organizationName, organizationType } =
-    validatedInput;
+  const {
+    email,
+    lastName,
+    password,
+    firstName,
+    organizationName,
+    organizationType,
+  } = validatedInput;
 
   const signUpResult = await auth.api.signUpEmail({
     body: {
@@ -64,7 +70,6 @@ export async function signUpWithOrgHandler(
   }
 
   const userId = signUpResult.user.id;
-
   logger.info("User created successfully", { userId, email });
 
   const slug = organizationName
@@ -72,36 +77,40 @@ export async function signUpWithOrgHandler(
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-  const [newOrg] = await db
-    .insert(organization)
-    .values({
-      name: organizationName,
-      slug: `${slug}-${Date.now()}`,
-      organizationType: organizationType,
-    })
-    .returning();
+  const result = await db.transaction(async (tx) => {
+    const [newOrg] = await tx
+      .insert(organization)
+      .values({
+        name: organizationName,
+        slug: `${slug}-${Date.now()}`,
+        organizationType: organizationType,
+      })
+      .returning();
 
-  if (!newOrg) {
-    logger.error("Failed to create organization");
-    throw new Error("Failed to create organization");
-  }
+    if (!newOrg) {
+      logger.error("Failed to create organization");
+      throw new Error("Failed to create organization");
+    }
 
-  logger.info("Organization created successfully", {
-    organizationId: newOrg.id,
-    organizationName: newOrg.name,
-  });
+    logger.info("Organization created successfully", {
+      organizationId: newOrg.id,
+      organizationName: newOrg.name,
+    });
 
-  await seedOrganizationRoles(newOrg.id, logger);
+    await seedOrganizationRoles(newOrg.id, logger, tx);
 
-  await db.insert(member).values({
-    organizationId: newOrg.id,
-    userId: userId,
-    role: "owner",
-  });
+    await tx.insert(member).values({
+      organizationId: newOrg.id,
+      userId: userId,
+      role: "owner",
+    });
 
-  logger.info("User added as owner of organization", {
-    userId,
-    organizationId: newOrg.id,
+    logger.info("User added as owner of organization", {
+      userId,
+      organizationId: newOrg.id,
+    });
+
+    return newOrg;
   });
 
   return {
@@ -113,10 +122,10 @@ export async function signUpWithOrgHandler(
       lastName: lastName,
     },
     organization: {
-      id: newOrg.id,
-      name: newOrg.name,
-      slug: newOrg.slug,
-      organizationType: newOrg.organizationType,
+      id: result.id,
+      name: result.name,
+      slug: result.slug,
+      organizationType: result.organizationType,
     },
     session: {
       token: signUpResult.token || "",

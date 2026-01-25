@@ -22,6 +22,20 @@
       "when": 1768448828408,
       "tag": "0002_smooth_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769333919885,
+      "tag": "0003_jittery_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1769334085429,
+      "tag": "0004_complete_elektra",
+      "breakpoints": true
     }
   ]
 }
