@@ -20,11 +20,12 @@ const app: FastifyPluginAsync<AppOptions> = async (
     swagger: {
       info: {
         title: "API Documentation",
-        description: "Fastify-based REST API following CQRS pattern with file-based routing",
+        description:
+          "Fastify-based REST API following CQRS pattern with file-based routing",
         version: "1.0.0",
       },
       externalDocs: {
-        url: "https://github.com/your-repo",
+        url: "https://github.com/white-board-io/white-board",
         description: "Find more info here",
       },
       host: "localhost:8000",
@@ -34,7 +35,10 @@ const app: FastifyPluginAsync<AppOptions> = async (
       tags: [
         { name: "auth", description: "Authentication endpoints" },
         { name: "todos", description: "Todo management endpoints" },
-        { name: "roles", description: "Role and permission management endpoints" },
+        {
+          name: "roles",
+          description: "Role and permission management endpoints",
+        },
       ],
       securityDefinitions: {
         bearerAuth: {
