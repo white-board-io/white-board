@@ -30,6 +30,33 @@ const mockSendEmail = ({
 };
 
 export const auth = betterAuth({
+  // Trust origins for CORS - required for cookie-based auth to work across origins
+  trustedOrigins: [
+    process.env.CLIENT_ORIGIN || "http://localhost:3000",
+    process.env.API_ORIGIN || "http://localhost:8000",
+  ],
+  // Session configuration with secure cookie settings
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day - refresh session cookie daily
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes cache
+    },
+  },
+  // Advanced cookie settings
+  advanced: {
+    cookiePrefix: "whiteboard",
+    crossSubDomainCookies: {
+      enabled: process.env.NODE_ENV === "production",
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    },
+    defaultCookieAttributes: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: schema,

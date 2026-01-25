@@ -5,21 +5,21 @@ import { createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
 export type SignInResult = {
-  user: {
-    id: string;
-    email: string;
-    firstName: string | null;
-    lastName: string | null;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+    };
   };
-  session: {
-    token: string;
-  };
+  responseHeaders: Headers;
 };
 
 export async function signInHandler(
   input: unknown,
   headers: Headers,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<SignInResult> {
   logger.debug("SignInCommand received");
 
@@ -32,30 +32,44 @@ export async function signInHandler(
 
   const validatedInput: SignInInput = parseResult.data;
 
-  const result = await auth.api.signInEmail({
+  const signInResponse = await auth.api.signInEmail({
     body: {
       email: validatedInput.email,
       password: validatedInput.password,
     },
     headers,
+    asResponse: true,
   });
 
-  if (!result.user) {
-    logger.warn("Sign in failed - invalid credentials", { email: validatedInput.email });
+  const responseHeaders = signInResponse.headers;
+  const signInData = (await signInResponse.json()) as {
+    user?: {
+      id: string;
+      email: string;
+      firstName?: string;
+      lastName?: string;
+    };
+    token?: string;
+  };
+
+  if (!signInData.user) {
+    logger.warn("Sign in failed - invalid credentials", {
+      email: validatedInput.email,
+    });
     throw createValidationError({ auth: ["INVALID_CREDENTIALS"] });
   }
 
-  logger.info("User signed in successfully", { userId: result.user.id });
+  logger.info("User signed in successfully", { userId: signInData.user.id });
 
   return {
-    user: {
-      id: result.user.id,
-      email: result.user.email,
-      firstName: result.user.firstName ?? null,
-      lastName: result.user.lastName ?? null,
+    data: {
+      user: {
+        id: signInData.user.id,
+        email: signInData.user.email,
+        firstName: signInData.user.firstName ?? null,
+        lastName: signInData.user.lastName ?? null,
+      },
     },
-    session: {
-      token: result.token || "",
-    },
+    responseHeaders,
   };
 }

@@ -11,22 +11,22 @@ import { createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
 export type SignUpWithOrgResult = {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    firstName: string;
-    lastName: string;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      firstName: string;
+      lastName: string;
+    };
+    organization: {
+      id: string;
+      name: string;
+      slug: string | null;
+      organizationType: string;
+    };
   };
-  organization: {
-    id: string;
-    name: string;
-    slug: string | null;
-    organizationType: string;
-  };
-  session: {
-    token: string;
-  };
+  responseHeaders: Headers;
 };
 
 export async function signUpWithOrgHandler(
@@ -53,7 +53,7 @@ export async function signUpWithOrgHandler(
     organizationType,
   } = validatedInput;
 
-  const signUpResult = await auth.api.signUpEmail({
+  const signUpResponse = await auth.api.signUpEmail({
     body: {
       email,
       password,
@@ -62,14 +62,21 @@ export async function signUpWithOrgHandler(
       lastName,
     },
     headers,
+    asResponse: true,
   });
 
-  if (!signUpResult.user) {
+  const responseHeaders = signUpResponse.headers;
+  const signUpData = (await signUpResponse.json()) as {
+    user?: { id: string; email: string; name: string };
+    token?: string;
+  };
+
+  if (!signUpData.user) {
     logger.error("Failed to create user");
     throw new Error("Failed to create user");
   }
 
-  const userId = signUpResult.user.id;
+  const userId = signUpData.user.id;
   logger.info("User created successfully", { userId, email });
 
   const slug = organizationName
@@ -114,21 +121,21 @@ export async function signUpWithOrgHandler(
   });
 
   return {
-    user: {
-      id: signUpResult.user.id,
-      email: signUpResult.user.email,
-      name: signUpResult.user.name,
-      firstName: firstName,
-      lastName: lastName,
+    data: {
+      user: {
+        id: signUpData.user.id,
+        email: signUpData.user.email,
+        name: signUpData.user.name,
+        firstName: firstName,
+        lastName: lastName,
+      },
+      organization: {
+        id: result.id,
+        name: result.name,
+        slug: result.slug,
+        organizationType: result.organizationType,
+      },
     },
-    organization: {
-      id: result.id,
-      name: result.name,
-      slug: result.slug,
-      organizationType: result.organizationType,
-    },
-    session: {
-      token: signUpResult.token || "",
-    },
+    responseHeaders,
   };
 }
