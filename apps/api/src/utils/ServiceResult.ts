@@ -1,7 +1,7 @@
 export type ServiceError = {
   code: string;
   value?: string;
-  message: string;
+  message?: string;
 };
 
 export type ServiceResult<T> =
