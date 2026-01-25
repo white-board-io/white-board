@@ -22,12 +22,12 @@ This document outlines the coding standards and conventions for the API project.
 
 ### Instead of Comments, Use
 
-| Bad (with comments) | Good (self-documenting) |
-|---------------------|------------------------|
+| Bad (with comments)          | Good (self-documenting)               |
+| ---------------------------- | ------------------------------------- |
 | `const t = 3600; // seconds` | `const tokenExpiresInSeconds = 3600;` |
-| `// Get user by ID` | `getUserById(id)` |
-| `// Check if valid` | `isValidEmail(email)` |
-| `// Admin can delete` | `canAdminDeleteResource(user)` |
+| `// Get user by ID`          | `getUserById(id)`                     |
+| `// Check if valid`          | `isValidEmail(email)`                 |
+| `// Admin can delete`        | `canAdminDeleteResource(user)`        |
 
 ### Examples
 
@@ -126,14 +126,14 @@ export type Todo = z.infer<typeof TodoSchema>;
 
 ### File Naming (kebab-case with suffix)
 
-| Type | Suffix | Example |
-|------|--------|---------|
-| Command | `.command.ts` | `create-todo.command.ts` |
-| Query | `.query.ts` | `get-all-todos.query.ts` |
-| Schema | `.schema.ts` | `todo.schema.ts` |
-| Validator | `.validator.ts` | `todo.validator.ts` |
-| Repository | `.repository.ts` | `todo.repository.ts` |
-| Test | `.test.ts` | `todos.test.ts` |
+| Type       | Suffix           | Example                  |
+| ---------- | ---------------- | ------------------------ |
+| Command    | `.command.ts`    | `create-todo.command.ts` |
+| Query      | `.query.ts`      | `get-all-todos.query.ts` |
+| Schema     | `.schema.ts`     | `todo.schema.ts`         |
+| Validator  | `.validator.ts`  | `todo.validator.ts`      |
+| Repository | `.repository.ts` | `todo.repository.ts`     |
+| Test       | `.test.ts`       | `todos.test.ts`          |
 
 ### Function Naming
 
@@ -184,7 +184,7 @@ Handlers accept `unknown` type for input, validating inside:
 // Good
 export async function createTodoHandler(
   input: unknown,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<CreateTodoCommandResult> {
   const parseResult = CreateTodoInputSchema.safeParse(input);
   // ...
@@ -193,7 +193,7 @@ export async function createTodoHandler(
 // Bad
 export async function createTodoHandler(
   input: CreateTodoInput,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<CreateTodoCommandResult> {
   // No validation - trusts input blindly
 }
@@ -201,34 +201,33 @@ export async function createTodoHandler(
 
 ### Explicit Return Types
 
-Always define explicit return types for handlers:
+Always define explicit return types for handlers using `ServiceResult`:
 
 ```typescript
-export type CreateTodoCommandResult = {
-  data: Todo;
-};
+import type { ServiceResult } from "../../../utils/ServiceResult";
 
 export async function createTodoHandler(
   input: unknown,
-  logger: LoggerHelpers
-): Promise<CreateTodoCommandResult> {
+  logger: LoggerHelpers,
+): Promise<ServiceResult<Todo>> {
   // ...
-  return { data: todo };
+  return { isSuccess: true, data: todo };
 }
 ```
 
 ### Consistent Result Structure
 
-Wrap returned data in a `data` property:
+Handlers return a `ServiceResult` object which contains either `data` (on success) or `errors` (on failure):
 
 ```typescript
-// Good
-return { data: todo };
-return { data: todos };
+// Success
+return { isSuccess: true, data: todo };
 
-// Bad
-return todo;
-return todos;
+// Failure
+return {
+  isSuccess: false,
+  errors: [{ code: "VALIDATION_ERROR", message: "Invalid input" }],
+};
 ```
 
 ## Route Patterns
@@ -241,7 +240,10 @@ Every route follows this pattern:
 fastify.post("/", async (request, reply) => {
   try {
     const result = await createTodoHandler(request.body, fastify.logger);
-    return reply.status(201).send(result);
+    if (result.isSuccess) {
+      return reply.status(201).send(result.data);
+    }
+    return reply.status(400).send(result.errors);
   } catch (error) {
     return handleError(error, reply);
   }
@@ -257,7 +259,10 @@ Keep route handlers thin - delegate to command/query handlers:
 fastify.post("/", async (request, reply) => {
   try {
     const result = await createTodoHandler(request.body, fastify.logger);
-    return reply.status(201).send(result);
+    if (result.isSuccess) {
+      return reply.status(201).send(result.data);
+    }
+    return reply.status(400).send(result.errors);
   } catch (error) {
     return handleError(error, reply);
   }
@@ -288,35 +293,48 @@ Organize imports in this order:
 ```typescript
 import { z } from "zod";
 
-import { CreateTodoInputSchema, type CreateTodoInput, type Todo } from "../schemas/todo.schema";
+import {
+  CreateTodoInputSchema,
+  type CreateTodoInput,
+  type Todo,
+} from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
 import { todoValidator } from "../validators/todo.validator";
 import { createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
 ```
 
-## Error Handling
+## Result Pattern
 
-### Use Factory Functions
+### Use ServiceResult
 
-Never create `AppError` directly in handlers:
+Do not throw errors for business logic failures. Instead, return a failure `ServiceResult`:
 
 ```typescript
 // Good
-throw createValidationError({ fieldErrors: errors.fieldErrors });
-throw createNotFoundError("Todo", id);
+if (!todo) {
+  return {
+    isSuccess: false,
+    errors: [{ code: "RESOURCE_NOT_FOUND", message: "Todo not found" }],
+  };
+}
 
 // Bad
-throw new AppError("VALIDATION_ERROR", undefined, { fieldErrors });
+if (!todo) {
+  throw createNotFoundError("Todo", id);
+}
 ```
 
-### Log Before Throwing
+### Log Before Returning Failure
 
-Always log warnings before throwing expected errors:
+Always log warnings before returning a failure result for expected errors:
 
 ```typescript
 logger.warn("Todo not found", { id: validatedId });
-throw createNotFoundError("Todo", validatedId);
+return {
+  isSuccess: false,
+  errors: [{ code: "RESOURCE_NOT_FOUND", message: "Todo not found" }],
+};
 ```
 
 ## Repository Pattern
@@ -343,12 +361,12 @@ All repository methods are async:
 // Good
 findById: async (id: string): Promise<Todo | undefined> => {
   return todoStore.get(id);
-}
+};
 
 // Bad
 findById: (id: string): Todo | undefined => {
   return todoStore.get(id);
-}
+};
 ```
 
 ## Validation Order
@@ -361,10 +379,16 @@ In handlers, validate in this order:
 4. Business rule validation
 
 ```typescript
-export async function updateTodoHandler(id: unknown, input: unknown, logger: LoggerHelpers) {
+export async function updateTodoHandler(
+  id: unknown,
+  input: unknown,
+  logger: LoggerHelpers,
+) {
   const idParseResult = TodoIdParamSchema.safeParse({ id });
   if (!idParseResult.success) {
-    throw createValidationError({ fieldErrors: idParseResult.error.flatten().fieldErrors });
+    throw createValidationError({
+      fieldErrors: idParseResult.error.flatten().fieldErrors,
+    });
   }
 
   const existingTodo = await todoRepository.findById(idParseResult.data.id);
@@ -374,27 +398,35 @@ export async function updateTodoHandler(id: unknown, input: unknown, logger: Log
 
   const bodyParseResult = UpdateTodoInputSchema.safeParse(input);
   if (!bodyParseResult.success) {
-    throw createValidationError({ fieldErrors: bodyParseResult.error.flatten().fieldErrors });
+    throw createValidationError({
+      fieldErrors: bodyParseResult.error.flatten().fieldErrors,
+    });
   }
 
   if (bodyParseResult.data.title) {
-    await todoValidator.validateTitleUniqueness(bodyParseResult.data.title, idParseResult.data.id);
+    await todoValidator.validateTitleUniqueness(
+      bodyParseResult.data.title,
+      idParseResult.data.id,
+    );
   }
 
-  const updatedTodo = await todoRepository.update(idParseResult.data.id, bodyParseResult.data);
+  const updatedTodo = await todoRepository.update(
+    idParseResult.data.id,
+    bodyParseResult.data,
+  );
   return { data: updatedTodo };
 }
 ```
 
 ## Quick Reference
 
-| Guideline | Do | Don't |
-|-----------|----|----|
-| Comments | No comments, use good names | Comments explaining code |
-| Type definitions | `type Todo = {...}` | `interface Todo {...}` |
-| Type imports | `import type { Todo }` | `import { Todo }` |
-| Handler input | `input: unknown` | `input: CreateTodoInput` |
-| Return structure | `{ data: todo }` | `todo` |
-| Error creation | `createNotFoundError()` | `new AppError()` |
-| Repository methods | `async` functions | sync functions |
-| Variable names | `userEmailAddress` | `email` or `e` |
+| Guideline          | Do                                | Don't                    |
+| ------------------ | --------------------------------- | ------------------------ |
+| Comments           | No comments, use good names       | Comments explaining code |
+| Type definitions   | `type Todo = {...}`               | `interface Todo {...}`   |
+| Type imports       | `import type { Todo }`            | `import { Todo }`        |
+| Handler input      | `input: unknown`                  | `input: CreateTodoInput` |
+| Return structure   | `{ isSuccess: true, data: todo }` | `todo`                   |
+| Error handling     | Return failure `ServiceResult`    | Throw `AppError`         |
+| Repository methods | `async` functions                 | sync functions           |
+| Variable names     | `userEmailAddress`                | `email` or `e`           |

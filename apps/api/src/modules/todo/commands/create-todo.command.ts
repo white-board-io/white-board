@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   CreateTodoInputSchema,
   type CreateTodoInput,
@@ -6,29 +5,40 @@ import {
 } from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
 import { todoValidator } from "../validators/todo.validator";
-import { createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
-
-export type CreateTodoCommandResult = {
-  data: Todo;
-};
+import { ServiceResult } from "@utils/ServiceResult";
+import { mapZodErrors } from "@utils/mapZodErrors";
 
 export async function createTodoHandler(
   input: unknown,
-  logger: LoggerHelpers
-): Promise<CreateTodoCommandResult> {
+  logger: LoggerHelpers,
+): Promise<ServiceResult<Todo>> {
   logger.debug("CreateTodoCommand received", { input });
 
   const parseResult = CreateTodoInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
+
     logger.warn("Validation failed for CreateTodoCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+
+    return {
+      errors,
+      isSuccess: false,
+    };
   }
 
   const validatedInput: CreateTodoInput = parseResult.data;
 
-  await todoValidator.validateTitleUniqueness(validatedInput.title);
+  const validationResult = await todoValidator.validateTitleUniqueness(
+    validatedInput.title,
+  );
+
+  if (!validationResult.isValid) {
+    return {
+      isSuccess: false,
+      errors: validationResult.errors,
+    };
+  }
 
   const todo = await todoRepository.create(validatedInput);
 
@@ -39,5 +49,6 @@ export async function createTodoHandler(
 
   return {
     data: todo,
+    isSuccess: true,
   };
 }

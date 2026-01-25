@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   UpdateTodoInputSchema,
   TodoIdParamSchema,
@@ -7,28 +6,25 @@ import {
 } from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
 import { todoValidator } from "../validators/todo.validator";
-import {
-  createValidationError,
-  createNotFoundError,
-} from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
-
-export type UpdateTodoCommandResult = {
-  data: Todo;
-};
+import { mapZodErrors } from "@utils/mapZodErrors";
+import { ServiceResult } from "@utils/ServiceResult";
 
 export async function updateTodoHandler(
   id: unknown,
   input: unknown,
-  logger: LoggerHelpers
-): Promise<UpdateTodoCommandResult> {
+  logger: LoggerHelpers,
+): Promise<ServiceResult<Todo>> {
   logger.debug("UpdateTodoCommand received", { id, input });
 
   const idParseResult = TodoIdParamSchema.safeParse({ id });
   if (!idParseResult.success) {
-    const errors = z.flattenError(idParseResult.error);
+    const errors = mapZodErrors(idParseResult.error);
     logger.warn("Invalid todo ID format", { id, errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      errors,
+      isSuccess: false,
+    };
   }
 
   const validatedId = idParseResult.data.id;
@@ -36,14 +32,25 @@ export async function updateTodoHandler(
   const existingTodo = await todoRepository.findById(validatedId);
   if (!existingTodo) {
     logger.warn("Todo not found for update", { id: validatedId });
-    throw createNotFoundError("Todo", validatedId);
+    return {
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: "Todo not found",
+        },
+      ],
+      isSuccess: false,
+    };
   }
 
   const parseResult = UpdateTodoInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for UpdateTodoCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      errors,
+      isSuccess: false,
+    };
   }
 
   const validatedInput: UpdateTodoInput = parseResult.data;
@@ -51,18 +58,27 @@ export async function updateTodoHandler(
   if (validatedInput.title) {
     await todoValidator.validateTitleUniqueness(
       validatedInput.title,
-      validatedId
+      validatedId,
     );
   }
 
   const updatedTodo = await todoRepository.update(validatedId, validatedInput);
   if (!updatedTodo) {
-    throw createNotFoundError("Todo", validatedId);
+    return {
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: "Todo not found",
+        },
+      ],
+      isSuccess: false,
+    };
   }
 
   logger.info("Todo updated successfully", { todoId: validatedId });
 
   return {
+    isSuccess: true,
     data: updatedTodo,
   };
 }

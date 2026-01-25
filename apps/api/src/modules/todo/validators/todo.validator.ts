@@ -1,20 +1,28 @@
 import { todoRepository } from "../repository/todo.repository";
-import { createDuplicateError } from "../../../shared/errors/app-error";
+import type { ValidationResult } from "@utils/ValidationResult";
 
 export const todoValidator = {
   validateTitleUniqueness: async (
     title: string,
-    excludeId?: string
-  ): Promise<void> => {
+    excludeId?: string,
+  ): Promise<ValidationResult> => {
     const existingTodo = await todoRepository.findByTitle(title);
 
     if (existingTodo && existingTodo.id !== excludeId) {
-      throw createDuplicateError("todo", "title", title);
+      return {
+        isValid: false,
+        errors: [
+          {
+            value: title,
+            code: "DUPLICATE_TITLE",
+            message: "Title already exists",
+          },
+        ],
+      };
     }
-  },
 
-  validateDueDate: (dueDate?: Date): boolean => {
-    if (!dueDate) return true;
-    return dueDate > new Date();
+    return {
+      isValid: true,
+    };
   },
 };

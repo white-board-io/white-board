@@ -1,28 +1,25 @@
-import { z } from "zod";
-import type { Todo } from "../schemas/todo.schema";
 import { TodoIdParamSchema } from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
-import {
-  createNotFoundError,
-  createValidationError,
-} from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
-
-export type ToggleTodoCommandResult = {
-  data: Todo;
-};
+import { Todo } from "../schemas/todo.schema";
+import { mapZodErrors } from "@utils/mapZodErrors";
+import { ServiceResult } from "@utils/ServiceResult";
 
 export async function toggleTodoHandler(
   id: unknown,
-  logger: LoggerHelpers
-): Promise<ToggleTodoCommandResult> {
+  logger: LoggerHelpers,
+): Promise<ServiceResult<Todo>> {
   logger.debug("ToggleTodoCommand received", { id });
 
   const parseResult = TodoIdParamSchema.safeParse({ id });
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Invalid todo ID format", { id, errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+
+    return {
+      errors,
+      isSuccess: false,
+    };
   }
 
   const validatedId = parseResult.data.id;
@@ -30,7 +27,15 @@ export async function toggleTodoHandler(
   const existingTodo = await todoRepository.findById(validatedId);
   if (!existingTodo) {
     logger.warn("Todo not found for toggle", { id: validatedId });
-    throw createNotFoundError("Todo", validatedId);
+    return {
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: "Todo not found",
+        },
+      ],
+      isSuccess: false,
+    };
   }
 
   const newCompletedStatus = !existingTodo.completed;
@@ -39,7 +44,15 @@ export async function toggleTodoHandler(
   });
 
   if (!updatedTodo) {
-    throw createNotFoundError("Todo", validatedId);
+    return {
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: "Todo not found",
+        },
+      ],
+      isSuccess: false,
+    };
   }
 
   logger.info("Todo status toggled", {
@@ -50,5 +63,6 @@ export async function toggleTodoHandler(
 
   return {
     data: updatedTodo,
+    isSuccess: true,
   };
 }
