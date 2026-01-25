@@ -13,7 +13,87 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
     await requireAuth(request);
   });
 
-  fastify.post("/", async (request, reply) => {
+  fastify.post("/", {
+    schema: {
+      tags: ["roles"],
+      summary: "Create a new role",
+      description: "Creates a new role with the provided permissions",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        properties: {
+          organizationId: { type: "string", format: "uuid" },
+        },
+        required: ["organizationId"],
+      },
+      body: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          description: { type: ["string", "null"] },
+          permissions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                resource: { type: "string" },
+                actions: { type: "array", items: { type: "string" } },
+              },
+              required: ["resource", "actions"],
+            },
+          },
+        },
+        required: ["name"],
+      },
+      response: {
+        201: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            data: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                description: { type: ["string", "null"] },
+                permissions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      resource: { type: "string" },
+                      actions: { type: "array", items: { type: "string" } },
+                    },
+                  },
+                },
+              },
+            },
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+        400: {
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { organizationId } = request.params as { organizationId: string };
       const result = await createRoleHandler(
@@ -28,7 +108,71 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  fastify.get("/", async (request, reply) => {
+  fastify.get("/", {
+    schema: {
+      tags: ["roles"],
+      summary: "List all roles",
+      description: "Retrieves a list of all roles in the organization",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        properties: {
+          organizationId: { type: "string", format: "uuid" },
+        },
+        required: ["organizationId"],
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            data: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  name: { type: "string" },
+                  description: { type: ["string", "null"] },
+                  permissions: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        resource: { type: "string" },
+                        actions: { type: "array", items: { type: "string" } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+        400: {
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { organizationId } = request.params as { organizationId: string };
       const result = await listRolesHandler(
@@ -42,7 +186,86 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  fastify.patch("/:roleId", async (request, reply) => {
+  fastify.patch("/:roleId", {
+    schema: {
+      tags: ["roles"],
+      summary: "Update role permissions",
+      description: "Updates the permissions for a specific role",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        properties: {
+          organizationId: { type: "string", format: "uuid" },
+          roleId: { type: "string", format: "uuid" },
+        },
+        required: ["organizationId", "roleId"],
+      },
+      body: {
+        type: "object",
+        properties: {
+          permissions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                resource: { type: "string" },
+                actions: { type: "array", items: { type: "string" } },
+              },
+              required: ["resource", "actions"],
+            },
+          },
+        },
+        required: ["permissions"],
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            data: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                description: { type: ["string", "null"] },
+                permissions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      resource: { type: "string" },
+                      actions: { type: "array", items: { type: "string" } },
+                    },
+                  },
+                },
+              },
+            },
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+        400: {
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { organizationId, roleId } = request.params as {
         organizationId: string;
@@ -61,7 +284,52 @@ const rolesRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  fastify.delete("/:roleId", async (request, reply) => {
+  fastify.delete("/:roleId", {
+    schema: {
+      tags: ["roles"],
+      summary: "Delete a role",
+      description: "Deletes a role by its ID",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        properties: {
+          organizationId: { type: "string", format: "uuid" },
+          roleId: { type: "string", format: "uuid" },
+        },
+        required: ["organizationId", "roleId"],
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            data: { type: "object" },
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+        400: {
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                code: { type: "string" },
+                message: { type: "string" },
+                details: { type: "object" },
+              },
+            },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { organizationId, roleId } = request.params as {
         organizationId: string;

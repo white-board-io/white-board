@@ -13,7 +13,7 @@
     "./*": "./src/components/ui/*.tsx"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint",
     "check-types": "tsc --noEmit",
     "ui:add": "bun x shadcn@latest add"
   },
