@@ -1,15 +1,17 @@
-import { z } from "zod";
-import { ChangePasswordInputSchema, type ChangePasswordInput } from "../schemas/auth.schema";
-import { createValidationError, createUnauthorizedError, createForbiddenError } from "../../../shared/errors/app-error";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
+import {
+  ChangePasswordInputSchema,
+  type ChangePasswordInput,
+} from "../schemas/auth.schema";
 import { db, eq, and } from "@repo/database";
 import { account } from "@repo/database/schema/auth";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 import crypto from "crypto";
 
-export type ChangePasswordResult = {
-  success: boolean;
-};
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type ChangePasswordResult = ServiceResult<{ success: boolean }>;
 
 async function hashPassword(password: string): Promise<string> {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -21,7 +23,10 @@ async function hashPassword(password: string): Promise<string> {
   });
 }
 
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
+async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
   const [salt, key] = hash.split(":");
   return new Promise((resolve, reject) => {
     crypto.pbkdf2(password, salt, 100000, 64, "sha512", (err, derivedKey) => {
@@ -34,19 +39,25 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 export async function changePasswordHandler(
   input: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<ChangePasswordResult> {
   logger.debug("ChangePasswordCommand received");
 
   if (!request.user) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
   const parseResult = ChangePasswordInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for ChangePasswordCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors,
+    };
   }
 
   const validatedInput: ChangePasswordInput = parseResult.data;
@@ -57,22 +68,36 @@ export async function changePasswordHandler(
     .where(
       and(
         eq(account.userId, request.user.id),
-        eq(account.providerId, "credential")
-      )
+        eq(account.providerId, "credential"),
+      ),
     )
     .limit(1);
 
   if (!accountRecord || !accountRecord.password) {
-    throw createForbiddenError("No password set for this account");
+    return {
+      isSuccess: false,
+      errors: [
+        { code: "FORBIDDEN", message: "No password set for this account" },
+      ],
+    };
   }
 
   const isCurrentPasswordValid = await verifyPassword(
     validatedInput.currentPassword,
-    accountRecord.password
+    accountRecord.password,
   );
 
   if (!isCurrentPasswordValid) {
-    throw createValidationError({ currentPassword: ["INVALID_CURRENT_PASSWORD"] });
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "VALIDATION_ERROR",
+          message: "Invalid current password",
+          value: "currentPassword",
+        },
+      ],
+    };
   }
 
   const hashedPassword = await hashPassword(validatedInput.newPassword);
@@ -84,5 +109,5 @@ export async function changePasswordHandler(
 
   logger.info("Password changed successfully", { userId: request.user.id });
 
-  return { success: true };
+  return { isSuccess: true, data: { success: true } };
 }

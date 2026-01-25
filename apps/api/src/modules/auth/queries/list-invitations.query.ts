@@ -1,9 +1,10 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { db, eq } from "@repo/database";
 import { invitation, user, organization } from "@repo/database/schema/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
-import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
+import type { ServiceResult } from "../../../utils/ServiceResult";
+// removed unused imports
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -18,26 +19,40 @@ export type InvitationInfo = {
   createdAt: Date;
 };
 
-export type ListInvitationsResult = {
+export type ListInvitationsResult = ServiceResult<{
   invitations: InvitationInfo[];
-};
+}>;
 
 export async function listInvitationsHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<ListInvitationsResult> {
   logger.debug("ListInvitationsQuery received", { organizationId });
 
   const parseResult = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(parseResult.error),
+    };
   }
 
   const validatedOrgId = parseResult.data.organizationId;
 
-  await requirePermission(request, validatedOrgId, "invitation", "read");
+  try {
+    await requirePermission(request, validatedOrgId, "invitation", "read");
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to read invitations",
+        },
+      ],
+    };
+  }
 
   const [org] = await db
     .select()
@@ -46,7 +61,16 @@ export async function listInvitationsHandler(
     .limit(1);
 
   if (!org || org.isDeleted) {
-    throw createNotFoundError("Organization", validatedOrgId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Organization ${validatedOrgId} not found`,
+          value: validatedOrgId,
+        },
+      ],
+    };
   }
 
   const invitationsData = await db
@@ -72,7 +96,8 @@ export async function listInvitationsHandler(
     status: inv.status,
     expiresAt: inv.expiresAt,
     inviterEmail: inv.inviterEmail,
-    inviterName: `${inv.inviterFirstName || ""} ${inv.inviterLastName || ""}`.trim(),
+    inviterName:
+      `${inv.inviterFirstName || ""} ${inv.inviterLastName || ""}`.trim(),
     createdAt: inv.expiresAt,
   }));
 
@@ -81,5 +106,5 @@ export async function listInvitationsHandler(
     count: invitations.length,
   });
 
-  return { invitations };
+  return { isSuccess: true, data: { invitations } };
 }

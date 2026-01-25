@@ -1,17 +1,16 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { auth } from "@repo/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requireOrgMembership } from "../middleware/require-auth.middleware";
-import {
-  createValidationError,
-  createUnauthorizedError,
-} from "../../../shared/errors/app-error";
+// removed unused imports
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type SwitchOrganizationResult = {
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type SwitchOrganizationResult = ServiceResult<{
   activeOrganizationId: string;
-};
+}>;
 
 export async function switchOrganizationHandler(
   organizationId: unknown,
@@ -22,18 +21,35 @@ export async function switchOrganizationHandler(
   logger.debug("SwitchOrganizationCommand received", { organizationId });
 
   if (!request.user) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
   const parseResult = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(parseResult.error),
+    };
   }
 
   const validatedOrgId = parseResult.data.organizationId;
 
-  await requireOrgMembership(request, validatedOrgId);
+  try {
+    await requireOrgMembership(request, validatedOrgId);
+  } catch {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "User is not a member of this organization",
+        },
+      ],
+    };
+  }
 
   await auth.api.setActiveOrganization({
     body: { organizationId: validatedOrgId },
@@ -45,5 +61,5 @@ export async function switchOrganizationHandler(
     organizationId: validatedOrgId,
   });
 
-  return { activeOrganizationId: validatedOrgId };
+  return { isSuccess: true, data: { activeOrganizationId: validatedOrgId } };
 }

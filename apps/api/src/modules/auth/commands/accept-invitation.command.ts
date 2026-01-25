@@ -1,40 +1,44 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
+
 import { db, eq } from "@repo/database";
 import { invitation, member, organization } from "@repo/database/schema/auth";
-import { AcceptInvitationInputSchema, type AcceptInvitationInput } from "../schemas/auth.schema";
 import {
-  createValidationError,
-  createNotFoundError,
-  createForbiddenError,
-  createUnauthorizedError,
-} from "../../../shared/errors/app-error";
+  AcceptInvitationInputSchema,
+  type AcceptInvitationInput,
+} from "../schemas/auth.schema";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type AcceptInvitationResult = {
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type AcceptInvitationResult = ServiceResult<{
   organization: {
     id: string;
     name: string;
   };
   role: string;
-};
+}>;
 
 export async function acceptInvitationHandler(
   input: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<AcceptInvitationResult> {
   logger.debug("AcceptInvitationCommand received");
 
   if (!request.user) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
   const parseResult = AcceptInvitationInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
-    logger.warn("Validation failed for AcceptInvitationCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(parseResult.error),
+    };
   }
 
   const validatedInput: AcceptInvitationInput = parseResult.data;
@@ -46,15 +50,40 @@ export async function acceptInvitationHandler(
     .limit(1);
 
   if (!invitationRecord) {
-    throw createNotFoundError("Invitation", validatedInput.invitationId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Invitation ${validatedInput.invitationId} not found`,
+          value: validatedInput.invitationId,
+        },
+      ],
+    };
   }
 
   if (invitationRecord.email !== request.user.email) {
-    throw createForbiddenError("This invitation is for a different email address");
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "This invitation is for a different email address",
+        },
+      ],
+    };
   }
 
   if (invitationRecord.status !== "pending") {
-    throw createForbiddenError("This invitation has already been used or cancelled");
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "This invitation has already been used or cancelled",
+        },
+      ],
+    };
   }
 
   if (new Date() > invitationRecord.expiresAt) {
@@ -63,7 +92,10 @@ export async function acceptInvitationHandler(
       .set({ status: "expired" })
       .where(eq(invitation.id, validatedInput.invitationId));
 
-    throw createForbiddenError("This invitation has expired");
+    return {
+      isSuccess: false,
+      errors: [{ code: "FORBIDDEN", message: "This invitation has expired" }],
+    };
   }
 
   const [org] = await db
@@ -73,7 +105,16 @@ export async function acceptInvitationHandler(
     .limit(1);
 
   if (!org || org.isDeleted) {
-    throw createNotFoundError("Organization", invitationRecord.organizationId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Organization ${invitationRecord.organizationId} not found`,
+          value: invitationRecord.organizationId,
+        },
+      ],
+    };
   }
 
   await db.insert(member).values({
@@ -94,10 +135,13 @@ export async function acceptInvitationHandler(
   });
 
   return {
-    organization: {
-      id: org.id,
-      name: org.name,
+    isSuccess: true,
+    data: {
+      organization: {
+        id: org.id,
+        name: org.name,
+      },
+      role: invitationRecord.role || "student",
     },
-    role: invitationRecord.role || "student",
   };
 }

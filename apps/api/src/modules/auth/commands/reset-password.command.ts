@@ -1,14 +1,16 @@
-import { z } from "zod";
-import { ResetPasswordInputSchema, type ResetPasswordInput } from "../schemas/auth.schema";
-import { createValidationError, createForbiddenError } from "../../../shared/errors/app-error";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
+import {
+  ResetPasswordInputSchema,
+  type ResetPasswordInput,
+} from "../schemas/auth.schema";
 import { db, eq, and } from "@repo/database";
 import { user, account, verification } from "@repo/database/schema/auth";
 import type { LoggerHelpers } from "../../../plugins/logger";
 import crypto from "crypto";
 
-export type ResetPasswordResult = {
-  success: boolean;
-};
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type ResetPasswordResult = ServiceResult<{ success: boolean }>;
 
 async function hashPassword(password: string): Promise<string> {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -22,15 +24,18 @@ async function hashPassword(password: string): Promise<string> {
 
 export async function resetPasswordHandler(
   input: unknown,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<ResetPasswordResult> {
   logger.debug("ResetPasswordCommand received");
 
   const parseResult = ResetPasswordInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for ResetPasswordCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors,
+    };
   }
 
   const validatedInput: ResetPasswordInput = parseResult.data;
@@ -42,12 +47,20 @@ export async function resetPasswordHandler(
     .limit(1);
 
   if (!verificationRecord) {
-    throw createForbiddenError("Invalid or expired token");
+    return {
+      isSuccess: false,
+      errors: [{ code: "FORBIDDEN", message: "Invalid or expired token" }],
+    };
   }
 
   if (new Date() > verificationRecord.expiresAt) {
-    await db.delete(verification).where(eq(verification.id, verificationRecord.id));
-    throw createForbiddenError("Token has expired");
+    await db
+      .delete(verification)
+      .where(eq(verification.id, verificationRecord.id));
+    return {
+      isSuccess: false,
+      errors: [{ code: "FORBIDDEN", message: "Token has expired" }],
+    };
   }
 
   const email = verificationRecord.identifier.replace("password-reset:", "");
@@ -59,7 +72,10 @@ export async function resetPasswordHandler(
     .limit(1);
 
   if (!existingUser) {
-    throw createForbiddenError("Invalid token");
+    return {
+      isSuccess: false,
+      errors: [{ code: "FORBIDDEN", message: "Invalid token" }],
+    };
   }
 
   const hashedPassword = await hashPassword(validatedInput.newPassword);
@@ -70,13 +86,15 @@ export async function resetPasswordHandler(
     .where(
       and(
         eq(account.userId, existingUser.id),
-        eq(account.providerId, "credential")
-      )
+        eq(account.providerId, "credential"),
+      ),
     );
 
-  await db.delete(verification).where(eq(verification.id, verificationRecord.id));
+  await db
+    .delete(verification)
+    .where(eq(verification.id, verificationRecord.id));
 
   logger.info("Password reset successfully", { userId: existingUser.id });
 
-  return { success: true };
+  return { isSuccess: true, data: { success: true } };
 }

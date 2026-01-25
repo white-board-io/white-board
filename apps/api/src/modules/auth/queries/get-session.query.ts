@@ -1,7 +1,7 @@
 import { auth } from "@repo/auth";
 import { db, eq, and } from "@repo/database";
 import { member, organization } from "@repo/database/schema/auth";
-import { createUnauthorizedError } from "../../../shared/errors/app-error";
+// removed unused imports
 import type { LoggerHelpers } from "../../../plugins/logger";
 
 export type OrganizationWithRole = {
@@ -13,7 +13,9 @@ export type OrganizationWithRole = {
   logo: string | null;
 };
 
-export type GetSessionResult = {
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type GetSessionResult = ServiceResult<{
   user: {
     id: string;
     email: string;
@@ -24,18 +26,21 @@ export type GetSessionResult = {
   };
   organizations: OrganizationWithRole[];
   activeOrganizationId: string | null;
-};
+}>;
 
 export async function getSessionHandler(
   headers: Headers,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<GetSessionResult> {
   logger.debug("GetSessionQuery received");
 
   const session = await auth.api.getSession({ headers });
 
   if (!session) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
   const userOrganizations = await db
@@ -50,17 +55,22 @@ export async function getSessionHandler(
     .from(member)
     .innerJoin(organization, eq(member.organizationId, organization.id))
     .where(
-      and(eq(member.userId, session.user.id), eq(organization.isDeleted, false))
+      and(
+        eq(member.userId, session.user.id),
+        eq(organization.isDeleted, false),
+      ),
     );
 
-  const organizations: OrganizationWithRole[] = userOrganizations.map((org) => ({
-    id: org.organizationId,
-    name: org.orgName,
-    slug: org.orgSlug,
-    organizationType: org.orgType,
-    role: org.role,
-    logo: org.orgLogo,
-  }));
+  const organizations: OrganizationWithRole[] = userOrganizations.map(
+    (org) => ({
+      id: org.organizationId,
+      name: org.orgName,
+      slug: org.orgSlug,
+      organizationType: org.orgType,
+      role: org.role,
+      logo: org.orgLogo,
+    }),
+  );
 
   logger.info("Session retrieved", {
     userId: session.user.id,
@@ -68,15 +78,18 @@ export async function getSessionHandler(
   });
 
   return {
-    user: {
-      id: session.user.id,
-      email: session.user.email,
-      firstName: session.user.firstName ?? null,
-      lastName: session.user.lastName ?? null,
-      emailVerified: session.user.emailVerified,
-      image: session.user.image ?? null,
+    isSuccess: true,
+    data: {
+      user: {
+        id: session.user.id,
+        email: session.user.email,
+        firstName: session.user.firstName ?? null,
+        lastName: session.user.lastName ?? null,
+        emailVerified: session.user.emailVerified,
+        image: session.user.image ?? null,
+      },
+      organizations,
+      activeOrganizationId: session.session.activeOrganizationId ?? null,
     },
-    organizations,
-    activeOrganizationId: session.session.activeOrganizationId ?? null,
   };
 }

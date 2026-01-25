@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import {
   UpdateRolePermissionsInputSchema,
   RoleIdParamSchema,
@@ -6,47 +6,79 @@ import {
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
 import { roleRepository } from "../repository/role.repository";
-import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
+
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type UpdateRolePermissionsResult = ServiceResult<{ success: boolean }>;
 
 export async function updateRolePermissionsHandler(
   organizationId: unknown,
   roleId: unknown,
   input: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
-) {
+  logger: LoggerHelpers,
+): Promise<UpdateRolePermissionsResult> {
   const orgIdParse = OrganizationIdParamSchema.safeParse({ organizationId });
   const roleIdParse = RoleIdParamSchema.safeParse({ roleId });
 
   if (!orgIdParse.success || !roleIdParse.success) {
-      const errors = {
-          ...(!orgIdParse.success ? z.flattenError(orgIdParse.error).fieldErrors : {}),
-          ...(!roleIdParse.success ? z.flattenError(roleIdParse.error).fieldErrors : {}),
-      };
-      throw createValidationError({ fieldErrors: errors });
+    return {
+      isSuccess: false,
+      errors: [
+        ...(orgIdParse.error ? mapZodErrors(orgIdParse.error) : []),
+        ...(roleIdParse.error ? mapZodErrors(roleIdParse.error) : []),
+      ],
+    };
   }
   const orgId = orgIdParse.data.organizationId;
   const targetRoleId = roleIdParse.data.roleId;
 
-  await requirePermission(request, orgId, "organization", "update");
+  try {
+    await requirePermission(request, orgId, "organization", "update");
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to update role permissions",
+        },
+      ],
+    };
+  }
 
   const parseResult = UpdateRolePermissionsInputSchema.safeParse(input);
   if (!parseResult.success) {
-    throw createValidationError({ fieldErrors: z.flattenError(parseResult.error).fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(parseResult.error),
+    };
   }
   const data = parseResult.data;
 
   const targetRole = await roleRepository.findById(orgId, targetRoleId);
 
   if (!targetRole) {
-    throw createNotFoundError("Role", targetRoleId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Role ${targetRoleId} not found`,
+          value: targetRoleId,
+        },
+      ],
+    };
   }
 
   await roleRepository.updatePermissions(orgId, targetRoleId, data.permissions);
 
-  logger.info("Role permissions updated", { roleId: targetRoleId, organizationId: orgId });
+  logger.info("Role permissions updated", {
+    roleId: targetRoleId,
+    organizationId: orgId,
+  });
 
-  return { success: true };
+  return { isSuccess: true, data: { success: true } };
 }

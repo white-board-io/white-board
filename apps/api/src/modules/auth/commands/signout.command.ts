@@ -1,12 +1,11 @@
 import { auth } from "@repo/auth";
-import { createUnauthorizedError } from "../../../shared/errors/app-error";
+// removed unused imports
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type SignOutResult = {
-  data: {
-    success: boolean;
-  };
-  responseHeaders: Headers;
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type SignOutResult = ServiceResult<{ success: boolean }> & {
+  responseHeaders?: Headers;
 };
 
 export async function signOutHandler(
@@ -18,7 +17,10 @@ export async function signOutHandler(
   const session = await auth.api.getSession({ headers });
 
   if (!session) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
   const signOutResponse = await auth.api.signOut({
@@ -31,6 +33,7 @@ export async function signOutHandler(
   logger.info("User signed out successfully", { userId: session.user.id });
 
   return {
+    isSuccess: true,
     data: { success: true },
     responseHeaders,
   };

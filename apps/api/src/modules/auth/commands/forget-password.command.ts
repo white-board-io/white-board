@@ -1,26 +1,31 @@
-import { z } from "zod";
-import { ForgotPasswordInputSchema, type ForgotPasswordInput } from "../schemas/auth.schema";
-import { createValidationError } from "../../../shared/errors/app-error";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
+import {
+  ForgotPasswordInputSchema,
+  type ForgotPasswordInput,
+} from "../schemas/auth.schema";
 import { db, eq } from "@repo/database";
 import { user, verification } from "@repo/database/schema/auth";
 import type { LoggerHelpers } from "../../../plugins/logger";
 import crypto from "crypto";
 
-export type ForgetPasswordResult = {
-  success: boolean;
-};
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type ForgetPasswordResult = ServiceResult<{ success: boolean }>;
 
 export async function forgetPasswordHandler(
   input: unknown,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<ForgetPasswordResult> {
   logger.debug("ForgetPasswordCommand received");
 
   const parseResult = ForgotPasswordInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for ForgetPasswordCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors,
+    };
   }
 
   const validatedInput: ForgotPasswordInput = parseResult.data;
@@ -35,7 +40,7 @@ export async function forgetPasswordHandler(
     logger.info("Password reset requested for non-existent email", {
       email: validatedInput.email,
     });
-    return { success: true };
+    return { isSuccess: true, data: { success: true } };
   }
 
   const token = crypto.randomBytes(32).toString("hex");
@@ -43,6 +48,7 @@ export async function forgetPasswordHandler(
   expiresAt.setHours(expiresAt.getHours() + 1);
 
   await db.insert(verification).values({
+    id: crypto.randomUUID(),
     identifier: `password-reset:${validatedInput.email}`,
     value: token,
     expiresAt,
@@ -62,5 +68,5 @@ export async function forgetPasswordHandler(
 
   logger.info("Password reset email sent", { email: validatedInput.email });
 
-  return { success: true };
+  return { isSuccess: true, data: { success: true } };
 }

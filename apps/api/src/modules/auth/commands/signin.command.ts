@@ -1,19 +1,20 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { auth } from "@repo/auth";
 import { SignInInputSchema, type SignInInput } from "../schemas/auth.schema";
-import { createValidationError } from "../../../shared/errors/app-error";
+import type { ServiceResult } from "../../../utils/ServiceResult";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type SignInResult = {
-  data: {
-    user: {
-      id: string;
-      email: string;
-      firstName: string | null;
-      lastName: string | null;
-    };
+export type SigninData = {
+  user: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
   };
-  responseHeaders: Headers;
+};
+
+export type SignInResult = ServiceResult<SigninData> & {
+  responseHeaders?: Headers;
 };
 
 export async function signInHandler(
@@ -25,9 +26,12 @@ export async function signInHandler(
 
   const parseResult = SignInInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for SignInCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors,
+    };
   }
 
   const validatedInput: SignInInput = parseResult.data;
@@ -56,12 +60,16 @@ export async function signInHandler(
     logger.warn("Sign in failed - invalid credentials", {
       email: validatedInput.email,
     });
-    throw createValidationError({ auth: ["INVALID_CREDENTIALS"] });
+    return {
+      isSuccess: false,
+      errors: [{ code: "VALIDATION_ERROR", message: "Invalid credentials" }],
+    };
   }
 
   logger.info("User signed in successfully", { userId: signInData.user.id });
 
   return {
+    isSuccess: true,
     data: {
       user: {
         id: signInData.user.id,

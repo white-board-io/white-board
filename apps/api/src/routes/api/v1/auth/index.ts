@@ -137,8 +137,14 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        // Forward Set-Cookie headers from better-auth for session management
-        forwardAuthHeaders(result.responseHeaders, reply);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+
+        if (result.responseHeaders) {
+          forwardAuthHeaders(result.responseHeaders, reply);
+        }
         return reply.status(201).send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
@@ -224,8 +230,14 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        // Forward Set-Cookie headers from better-auth for session management
-        forwardAuthHeaders(result.responseHeaders, reply);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+
+        if (result.responseHeaders) {
+          forwardAuthHeaders(result.responseHeaders, reply);
+        }
         return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
@@ -279,8 +291,14 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        // Forward Set-Cookie headers from better-auth to clear session cookie
-        forwardAuthHeaders(result.responseHeaders, reply);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+
+        if (result.responseHeaders) {
+          forwardAuthHeaders(result.responseHeaders, reply);
+        }
         return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
@@ -358,7 +376,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -417,7 +439,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request.body,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -474,7 +500,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       try {
         const result = await resetPasswordHandler(request.body, fastify.logger);
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -537,7 +567,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -610,7 +644,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -691,7 +729,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -801,7 +843,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -864,7 +910,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -928,7 +978,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           convertHeaders(request),
           fastify.logger,
         );
-        return reply.send({ success: true, data: result });
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1003,7 +1057,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1070,7 +1128,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1150,7 +1212,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.status(201).send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.status(201).send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1224,7 +1290,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1291,7 +1361,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }
@@ -1353,7 +1427,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           request,
           fastify.logger,
         );
-        return reply.send(result);
+
+        if (!result.isSuccess) {
+          return reply.status(400).send(result.errors);
+        }
+        return reply.send({ success: true, data: result.data });
       } catch (error) {
         return handleError(error, reply);
       }

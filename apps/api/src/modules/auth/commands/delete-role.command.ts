@@ -1,40 +1,79 @@
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { roleRepository } from "../repository/role.repository";
 import { roleValidator } from "../validators/role.validator";
 import { RoleIdParamSchema } from "../schemas/role.schema";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
-import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
+// removed unused imports
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
+
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type DeleteRoleResult = ServiceResult<{ success: boolean }>;
 
 export async function deleteRoleHandler(
   organizationId: unknown,
   roleId: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
-) {
+  logger: LoggerHelpers,
+): Promise<DeleteRoleResult> {
   const orgIdParse = OrganizationIdParamSchema.safeParse({ organizationId });
   const roleIdParse = RoleIdParamSchema.safeParse({ roleId });
 
   if (!orgIdParse.success || !roleIdParse.success) {
-      throw createValidationError({ fieldErrors: {} });
+    return {
+      isSuccess: false,
+      errors: [
+        ...(orgIdParse.error ? mapZodErrors(orgIdParse.error) : []),
+        ...(roleIdParse.error ? mapZodErrors(roleIdParse.error) : []),
+      ],
+    };
   }
   const orgId = orgIdParse.data.organizationId;
   const targetRoleId = roleIdParse.data.roleId;
 
-  await requirePermission(request, orgId, "organization", "update");
+  try {
+    await requirePermission(request, orgId, "organization", "update");
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to delete role",
+        },
+      ],
+    };
+  }
 
   const targetRole = await roleRepository.findById(orgId, targetRoleId);
 
   if (!targetRole) {
-    throw createNotFoundError("Role", targetRoleId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Role ${targetRoleId} not found`,
+          value: targetRoleId,
+        },
+      ],
+    };
   }
 
-  roleValidator.validateSystemRoleDeletion(targetRole.type);
+  try {
+    roleValidator.validateSystemRoleDeletion(targetRole.type);
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [{ code: "FORBIDDEN", message: "Cannot delete system roles" }],
+    };
+  }
 
   await roleRepository.delete(orgId, targetRoleId);
 
   logger.info("Role deleted", { roleId: targetRoleId, organizationId: orgId });
 
-  return { success: true };
+  return { isSuccess: true, data: { success: true } };
 }

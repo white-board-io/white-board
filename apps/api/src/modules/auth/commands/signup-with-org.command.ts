@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { auth } from "@repo/auth";
 import { db, eq } from "@repo/database";
 import { organization, member, session } from "@repo/database/schema/auth";
@@ -7,26 +7,29 @@ import {
   type SignUpWithOrgInput,
 } from "../schemas/auth.schema";
 import { seedOrganizationRoles } from "../utils/seed-roles";
-import { createValidationError } from "../../../shared/errors/app-error";
+// removed createValidationError
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type SignUpWithOrgResult = {
-  data: {
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      firstName: string;
-      lastName: string;
-    };
-    organization: {
-      id: string;
-      name: string;
-      slug: string | null;
-      organizationType: string;
-    };
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type SignUpWithOrgData = {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    firstName: string;
+    lastName: string;
   };
-  responseHeaders: Headers;
+  organization: {
+    id: string;
+    name: string;
+    slug: string | null;
+    organizationType: string;
+  };
+};
+
+export type SignUpWithOrgResult = ServiceResult<SignUpWithOrgData> & {
+  responseHeaders?: Headers;
 };
 
 export async function signUpWithOrgHandler(
@@ -38,9 +41,12 @@ export async function signUpWithOrgHandler(
 
   const parseResult = SignUpWithOrgInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for SignUpWithOrgCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors,
+    };
   }
 
   const validatedInput: SignUpWithOrgInput = parseResult.data;
@@ -73,7 +79,10 @@ export async function signUpWithOrgHandler(
 
   if (!signUpData.user) {
     logger.error("Failed to create user");
-    throw new Error("Failed to create user");
+    return {
+      isSuccess: false,
+      errors: [{ code: "INTERNAL_ERROR", message: "Failed to create user" }],
+    };
   }
 
   const userId = signUpData.user.id;
@@ -84,41 +93,51 @@ export async function signUpWithOrgHandler(
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-  const result = await db.transaction(async (tx) => {
-    const [newOrg] = await tx
-      .insert(organization)
-      .values({
-        name: organizationName,
-        slug: `${slug}-${Date.now()}`,
-        organizationType: organizationType,
-      })
-      .returning();
+  let result;
+  try {
+    result = await db.transaction(async (tx) => {
+      const [newOrg] = await tx
+        .insert(organization)
+        .values({
+          name: organizationName,
+          slug: `${slug}-${Date.now()}`,
+          organizationType: organizationType,
+        })
+        .returning();
 
-    if (!newOrg) {
-      logger.error("Failed to create organization");
-      throw new Error("Failed to create organization");
-    }
+      if (!newOrg) {
+        throw new Error("Failed to create organization");
+      }
 
-    logger.info("Organization created successfully", {
-      organizationId: newOrg.id,
-      organizationName: newOrg.name,
+      logger.info("Organization created successfully", {
+        organizationId: newOrg.id,
+        organizationName: newOrg.name,
+      });
+
+      await seedOrganizationRoles(newOrg.id, logger, tx);
+
+      await tx.insert(member).values({
+        organizationId: newOrg.id,
+        userId: userId,
+        role: "owner",
+      });
+
+      logger.info("User added as owner of organization", {
+        userId,
+        organizationId: newOrg.id,
+      });
+
+      return newOrg;
     });
-
-    await seedOrganizationRoles(newOrg.id, logger, tx);
-
-    await tx.insert(member).values({
-      organizationId: newOrg.id,
-      userId: userId,
-      role: "owner",
-    });
-
-    logger.info("User added as owner of organization", {
-      userId,
-      organizationId: newOrg.id,
-    });
-
-    return newOrg;
-  });
+  } catch (error) {
+    logger.error("Failed to create organization transaction", error as Error);
+    return {
+      isSuccess: false,
+      errors: [
+        { code: "INTERNAL_ERROR", message: "Failed to create organization" },
+      ],
+    };
+  }
 
   await db
     .update(session)
@@ -131,6 +150,7 @@ export async function signUpWithOrgHandler(
   });
 
   return {
+    isSuccess: true,
     data: {
       user: {
         id: signUpData.user.id,
