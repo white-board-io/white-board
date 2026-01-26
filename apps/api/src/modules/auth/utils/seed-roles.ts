@@ -1,4 +1,4 @@
-import { role, permission } from "@repo/database/schema/roles";
+import { role, permission, type RoleEntity } from "@repo/database/schema/roles";
 import { roles } from "@repo/auth/permissions";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -25,10 +25,14 @@ export async function seedOrganizationRoles(
     .values(roleValues)
     .returning();
 
+  const rolesByName = new Map<string, RoleEntity>(
+    createdRoles.map((r: RoleEntity) => [r.name, r]),
+  );
+
   const permissionValues = [];
-  for (let i = 0; i < createdRoles.length; i++) {
-    const createdRole = createdRoles[i];
-    const roleDef = roleEntries[i][1];
+  for (const [roleName, roleDef] of roleEntries) {
+    const createdRole = rolesByName.get(roleName);
+    if (!createdRole) continue;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const statements = (roleDef as any).statements as Record<string, string[]>;
@@ -38,7 +42,7 @@ export async function seedOrganizationRoles(
         ([resource, actions]) => ({
           roleId: createdRole.id,
           resource,
-          actions: actions,
+          actions,
         }),
       );
       permissionValues.push(...rolePermissions);
