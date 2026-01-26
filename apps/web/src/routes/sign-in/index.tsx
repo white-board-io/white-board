@@ -15,7 +15,7 @@ function RouteComponent() {
           alt="Whiteboard doodle showcase banner"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="-left-full absolute bottom-4 z-40 flex flex-col rounded-md px-4 py-2 opacity-0 transition-all duration-700 ease-out group-hover:left-4 group-hover:opacity-100">
+        <div className="-left-full absolute bottom-4 z-40 flex flex-col rounded-md px-4 py-2 opacity-0 transition-all duration-300 ease-out group-hover:left-4 group-hover:opacity-100">
           <Text variant="sm-regular" className="text-white">
             Want your image here?
           </Text>
@@ -27,7 +27,7 @@ function RouteComponent() {
           </Text>
         </div>
       </section>
-      <section className="mx-auto flex h-full w-full 3xl:max-w-lg max-w-sm translate-y-0 transform flex-col items-center justify-center overflow-x-hidden bg-white px-4 opacity-100 transition-all duration-500 ease-in-out md:px-6 lg:max-w-md lg:px-12">
+      <section className="mx-auto flex h-full w-full max-w-sm translate-y-0 transform flex-col items-center justify-center overflow-x-hidden bg-white px-4 opacity-100 transition-all duration-500 ease-in-out md:px-6 lg:max-w-md lg:px-12">
         <SignInForm />
       </section>
     </section>
