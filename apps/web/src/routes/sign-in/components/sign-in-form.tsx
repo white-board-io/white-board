@@ -63,7 +63,7 @@ export function SignInForm() {
         </div>
 
         <section>
-          <Button type="submit" className="mt-4 h-10 w-full">
+          <Button type="submit" className="mt-4 h-10 w-full" variant="default">
             Sign in
           </Button>
         </section>
