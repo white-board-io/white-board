@@ -52,10 +52,12 @@ export function SignInForm() {
               onClick={() => {
                 setShowPassword(!showPassword);
               }}
-              className="-top-2 absolute inset-y-0 right-0 flex items-center pr-3"
+              className="-top-2 absolute inset-y-0 right-0 flex items-center pr-3 transition-transform duration-200 hover:scale-110 focus:outline-none"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="h-5 w-5 text-gray-700" /> : <Eye className="h-5 w-5 text-gray-700" />}
+              <div className={`transition-all duration-300 ease-in-out transform ${showPassword ? 'rotate-180 scale-100 opacity-100' : 'rotate-0 scale-100 opacity-100'}`}>
+                {showPassword ? <EyeOff className="h-5 w-5 text-gray-700" /> : <Eye className="h-5 w-5 text-gray-700" />}
+              </div>
             </button>
           </div>
         </div>
