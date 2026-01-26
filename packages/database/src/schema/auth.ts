@@ -9,7 +9,8 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
   email: text("email").notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
@@ -29,7 +30,7 @@ export type NewUserEntity = typeof user.$inferInsert;
 export const session = pgTable(
   "session",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: text("id").primaryKey(),
     expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
@@ -39,11 +40,12 @@ export const session = pgTable(
       .$onUpdate(() => new Date()),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    activeOrganizationId: text("active_organization_id"),
   },
-  (table) => [index("session_user_id_idx").on(table.userId)]
+  (table) => [index("session_user_id_idx").on(table.userId)],
 );
 
 export type SessionEntity = typeof session.$inferSelect;
@@ -52,16 +54,18 @@ export type NewSessionEntity = typeof session.$inferInsert;
 export const account = pgTable(
   "account",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: text("id").primaryKey(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    accessTokenExpiresAt: timestamp("access_token_expires_at", { mode: "date" }),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", {
+      mode: "date",
+    }),
     refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
       mode: "date",
     }),
@@ -73,7 +77,7 @@ export const account = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [index("account_user_id_idx").on(table.userId)]
+  (table) => [index("account_user_id_idx").on(table.userId)],
 );
 
 export type AccountEntity = typeof account.$inferSelect;
@@ -82,7 +86,7 @@ export type NewAccountEntity = typeof account.$inferInsert;
 export const verification = pgTable(
   "verification",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: text("id").primaryKey(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
@@ -92,7 +96,7 @@ export const verification = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [index("verification_identifier_idx").on(table.identifier)]
+  (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
 export type VerificationEntity = typeof verification.$inferSelect;
@@ -112,7 +116,7 @@ export const organization = pgTable("organization", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").unique(),
-  logo: text("logo"), 
+  logo: text("logo"),
   addressLine1: text("address_line_1"),
   addressLine2: text("address_line_2"),
   city: text("city"),
@@ -143,7 +147,7 @@ export const member = pgTable(
     organizationId: uuid("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     role: text("role").notNull(),
@@ -152,7 +156,7 @@ export const member = pgTable(
   (table) => [
     index("member_organization_id_idx").on(table.organizationId),
     index("member_user_id_idx").on(table.userId),
-  ]
+  ],
 );
 
 export type MemberEntity = typeof member.$inferSelect;
@@ -169,14 +173,14 @@ export const invitation = pgTable(
     role: text("role"),
     status: text("status").notNull(),
     expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
-    inviterId: uuid("inviter_id")
+    inviterId: text("inviter_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
   },
   (table) => [
     index("invitation_organization_id_idx").on(table.organizationId),
     index("invitation_email_idx").on(table.email),
-  ]
+  ],
 );
 
 export type InvitationEntity = typeof invitation.$inferSelect;

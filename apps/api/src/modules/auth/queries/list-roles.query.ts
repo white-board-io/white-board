@@ -1,24 +1,45 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { roleRepository } from "../repository/role.repository";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
-import { createValidationError } from "../../../shared/errors/app-error";
+// removed unused imports
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
+
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type ListRolesResult = ServiceResult<{
+  roles: any[];
+}>;
 
 export async function listRolesHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
-) {
+  logger: LoggerHelpers,
+): Promise<ListRolesResult> {
   logger.debug("ListRolesQuery received", { organizationId });
   const idParse = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!idParse.success) {
-      throw createValidationError({ fieldErrors: z.flattenError(idParse.error).fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(idParse.error),
+    };
   }
   const orgId = idParse.data.organizationId;
 
-  await requirePermission(request, orgId, "member", "read");
+  try {
+    await requirePermission(request, orgId, "member", "read");
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to read roles",
+        },
+      ],
+    };
+  }
 
   const rows = await roleRepository.listByOrg(orgId);
 
@@ -35,14 +56,17 @@ export async function listRolesHandler(
     }
 
     if (row.permission) {
-        roleMap.get(row.role.id).permissions.push({
-            resource: row.permission.resource,
-            actions: row.permission.actions,
-        });
+      roleMap.get(row.role.id).permissions.push({
+        resource: row.permission.resource,
+        actions: row.permission.actions,
+      });
     }
   }
 
   return {
-    roles: Array.from(roleMap.values()),
+    isSuccess: true,
+    data: {
+      roles: Array.from(roleMap.values()),
+    },
   };
 }

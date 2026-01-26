@@ -1,9 +1,8 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { db, eq } from "@repo/database";
 import { member, user, organization } from "@repo/database/schema/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
-import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
@@ -17,26 +16,42 @@ export type MemberInfo = {
   joinedAt: Date;
 };
 
-export type ListMembersResult = {
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type ListMembersResult = ServiceResult<{
   members: MemberInfo[];
-};
+}>;
 
 export async function listMembersHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<ListMembersResult> {
   logger.debug("ListMembersQuery received", { organizationId });
 
   const parseResult = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(parseResult.error),
+    };
   }
 
   const validatedOrgId = parseResult.data.organizationId;
 
-  await requirePermission(request, validatedOrgId, "member", "read");
+  try {
+    await requirePermission(request, validatedOrgId, "member", "read");
+  } catch {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to read members",
+        },
+      ],
+    };
+  }
 
   const [org] = await db
     .select()
@@ -45,7 +60,16 @@ export async function listMembersHandler(
     .limit(1);
 
   if (!org || org.isDeleted) {
-    throw createNotFoundError("Organization", validatedOrgId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Organization ${validatedOrgId} not found`,
+          value: validatedOrgId,
+        },
+      ],
+    };
   }
 
   const membersData = await db
@@ -80,5 +104,5 @@ export async function listMembersHandler(
     count: members.length,
   });
 
-  return { members };
+  return { isSuccess: true, data: { members } };
 }

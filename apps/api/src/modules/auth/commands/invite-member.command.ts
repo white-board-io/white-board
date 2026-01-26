@@ -1,48 +1,75 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { db, eq, and } from "@repo/database";
-import { invitation, member, user, organization } from "@repo/database/schema/auth";
-import { InviteMemberInputSchema, type InviteMemberInput } from "../schemas/auth.schema";
+import {
+  invitation,
+  member,
+  user,
+  organization,
+} from "@repo/database/schema/auth";
+import {
+  InviteMemberInputSchema,
+  type InviteMemberInput,
+} from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
 import { roleValidator } from "../validators/role.validator";
-import {
-  createValidationError,
-  createNotFoundError,
-  createDuplicateError,
-  createUnauthorizedError,
-} from "../../../shared/errors/app-error";
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type InviteMemberResult = {
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type InviteMemberResult = ServiceResult<{
   invitation: {
     id: string;
     email: string;
     role: string;
     expiresAt: Date;
   };
-};
+}>;
 
 export async function inviteMemberHandler(
   input: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<InviteMemberResult> {
   logger.debug("InviteMemberCommand received");
 
   if (!request.user) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
   const parseResult = InviteMemberInputSchema.safeParse(input);
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
+    const errors = mapZodErrors(parseResult.error);
     logger.warn("Validation failed for InviteMemberCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors,
+    };
   }
 
   const validatedInput: InviteMemberInput = parseResult.data;
 
-  await requirePermission(request, validatedInput.organizationId, "invitation", "create");
+  try {
+    await requirePermission(
+      request,
+      validatedInput.organizationId,
+      "invitation",
+      "create",
+    );
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to invite members",
+        },
+      ],
+    };
+  }
 
   const [org] = await db
     .select()
@@ -51,10 +78,35 @@ export async function inviteMemberHandler(
     .limit(1);
 
   if (!org || org.isDeleted) {
-    throw createNotFoundError("Organization", validatedInput.organizationId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Organization ${validatedInput.organizationId} not found`,
+          value: validatedInput.organizationId,
+        },
+      ],
+    };
   }
 
-  await roleValidator.validateRoleExists(validatedInput.organizationId, validatedInput.role);
+  try {
+    await roleValidator.validateRoleExists(
+      validatedInput.organizationId,
+      validatedInput.role,
+    );
+  } catch (error) {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "VALIDATION_ERROR",
+          message: `Role ${validatedInput.role} does not exist`,
+          value: validatedInput.role,
+        },
+      ],
+    };
+  }
 
   const existingUser = await db
     .select()
@@ -69,13 +121,22 @@ export async function inviteMemberHandler(
       .where(
         and(
           eq(member.userId, existingUser[0].id),
-          eq(member.organizationId, validatedInput.organizationId)
-        )
+          eq(member.organizationId, validatedInput.organizationId),
+        ),
       )
       .limit(1);
 
     if (existingMember.length > 0) {
-      throw createDuplicateError("Member", "email", validatedInput.email);
+      return {
+        isSuccess: false,
+        errors: [
+          {
+            code: "DUPLICATE_RESOURCE",
+            message: `User with email ${validatedInput.email} is already a member`,
+            value: validatedInput.email,
+          },
+        ],
+      };
     }
   }
 
@@ -86,13 +147,22 @@ export async function inviteMemberHandler(
       and(
         eq(invitation.email, validatedInput.email),
         eq(invitation.organizationId, validatedInput.organizationId),
-        eq(invitation.status, "pending")
-      )
+        eq(invitation.status, "pending"),
+      ),
     )
     .limit(1);
 
   if (existingInvitation.length > 0) {
-    throw createDuplicateError("Invitation", "email", validatedInput.email);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "DUPLICATE_RESOURCE",
+          message: `Invitation for email ${validatedInput.email} already exists`,
+          value: validatedInput.email,
+        },
+      ],
+    };
   }
 
   const expiresAt = new Date();
@@ -110,7 +180,9 @@ export async function inviteMemberHandler(
     })
     .returning();
 
-  const inviterName = `${request.user.firstName || ""} ${request.user.lastName || ""}`.trim() || "Someone";
+  const inviterName =
+    `${request.user.firstName || ""} ${request.user.lastName || ""}`.trim() ||
+    "Someone";
   const inviteUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:3000"}/accept-invitation?token=${newInvitation.id}`;
 
   console.log("=".repeat(60));
@@ -119,7 +191,9 @@ export async function inviteMemberHandler(
   console.log(`To: ${validatedInput.email}`);
   console.log(`Subject: You've been invited to join ${org.name}`);
   console.log("-".repeat(60));
-  console.log(`${inviterName} has invited you to join ${org.name} as ${validatedInput.role}.`);
+  console.log(
+    `${inviterName} has invited you to join ${org.name} as ${validatedInput.role}.`,
+  );
   console.log(`Accept: ${inviteUrl}`);
   console.log("=".repeat(60));
 
@@ -130,11 +204,14 @@ export async function inviteMemberHandler(
   });
 
   return {
-    invitation: {
-      id: newInvitation.id,
-      email: newInvitation.email,
-      role: newInvitation.role || validatedInput.role,
-      expiresAt: newInvitation.expiresAt,
+    isSuccess: true,
+    data: {
+      invitation: {
+        id: newInvitation.id,
+        email: newInvitation.email,
+        role: newInvitation.role || validatedInput.role,
+        expiresAt: newInvitation.expiresAt,
+      },
     },
   };
 }

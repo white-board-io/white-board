@@ -1,13 +1,15 @@
-import { z } from "zod";
+import { mapZodErrors } from "../../../utils/mapZodErrors";
 import { db, eq } from "@repo/database";
 import { organization } from "@repo/database/schema/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requireOrgMembership } from "../middleware/require-auth.middleware";
-import { createValidationError, createNotFoundError } from "../../../shared/errors/app-error";
+// removed unused imports
 import type { FastifyRequest } from "fastify";
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type GetOrganizationResult = {
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type GetOrganizationResult = ServiceResult<{
   organization: {
     id: string;
     name: string;
@@ -27,24 +29,39 @@ export type GetOrganizationResult = {
     createdAt: Date;
   };
   role: string;
-};
+}>;
 
 export async function getOrganizationHandler(
   organizationId: unknown,
   request: FastifyRequest,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<GetOrganizationResult> {
   logger.debug("GetOrganizationQuery received", { organizationId });
 
   const parseResult = OrganizationIdParamSchema.safeParse({ organizationId });
   if (!parseResult.success) {
-    const errors = z.flattenError(parseResult.error);
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: mapZodErrors(parseResult.error),
+    };
   }
 
   const validatedOrgId = parseResult.data.organizationId;
 
-  const membership = await requireOrgMembership(request, validatedOrgId);
+  let membership;
+  try {
+    membership = await requireOrgMembership(request, validatedOrgId);
+  } catch {
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "FORBIDDEN",
+          message: "User is not a member of this organization",
+        },
+      ],
+    };
+  }
 
   const [org] = await db
     .select()
@@ -53,30 +70,42 @@ export async function getOrganizationHandler(
     .limit(1);
 
   if (!org || org.isDeleted) {
-    throw createNotFoundError("Organization", validatedOrgId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Organization ${validatedOrgId} not found`,
+          value: validatedOrgId,
+        },
+      ],
+    };
   }
 
   logger.info("Organization retrieved", { organizationId: validatedOrgId });
 
   return {
-    organization: {
-      id: org.id,
-      name: org.name,
-      slug: org.slug,
-      organizationType: org.organizationType,
-      logo: org.logo,
-      addressLine1: org.addressLine1,
-      addressLine2: org.addressLine2,
-      city: org.city,
-      state: org.state,
-      zip: org.zip,
-      country: org.country,
-      phone: org.phone,
-      email: org.email,
-      website: org.website,
-      description: org.description,
-      createdAt: org.createdAt,
+    isSuccess: true,
+    data: {
+      organization: {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        organizationType: org.organizationType,
+        logo: org.logo,
+        addressLine1: org.addressLine1,
+        addressLine2: org.addressLine2,
+        city: org.city,
+        state: org.state,
+        zip: org.zip,
+        country: org.country,
+        phone: org.phone,
+        email: org.email,
+        website: org.website,
+        description: org.description,
+        createdAt: org.createdAt,
+      },
+      role: membership.role,
     },
-    role: membership.role,
   };
 }

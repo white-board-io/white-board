@@ -15,6 +15,11 @@ const app: FastifyPluginAsync<AppOptions> = async (
   fastify,
   opts,
 ): Promise<void> => {
+  // Disable schema validation (let Zod handle it in handlers) but keep Swagger docs
+  fastify.setValidatorCompiler(() => {
+    return (data) => ({ value: data });
+  });
+
   // Swagger configuration
   void fastify.register(import("@fastify/swagger"), {
     swagger: {

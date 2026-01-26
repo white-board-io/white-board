@@ -1,26 +1,40 @@
 import { auth } from "@repo/auth";
-import { createUnauthorizedError } from "../../../shared/errors/app-error";
+// removed unused imports
 import type { LoggerHelpers } from "../../../plugins/logger";
 
-export type SignOutResult = {
-  success: boolean;
+import type { ServiceResult } from "../../../utils/ServiceResult";
+
+export type SignOutResult = ServiceResult<{ success: boolean }> & {
+  responseHeaders?: Headers;
 };
 
 export async function signOutHandler(
   headers: Headers,
-  logger: LoggerHelpers
+  logger: LoggerHelpers,
 ): Promise<SignOutResult> {
   logger.debug("SignOutCommand received");
 
   const session = await auth.api.getSession({ headers });
 
   if (!session) {
-    throw createUnauthorizedError();
+    return {
+      isSuccess: false,
+      errors: [{ code: "UNAUTHORIZED", message: "Authentication required" }],
+    };
   }
 
-  await auth.api.signOut({ headers });
+  const signOutResponse = await auth.api.signOut({
+    headers,
+    asResponse: true,
+  });
+
+  const responseHeaders = signOutResponse.headers;
 
   logger.info("User signed out successfully", { userId: session.user.id });
 
-  return { success: true };
+  return {
+    isSuccess: true,
+    data: { success: true },
+    responseHeaders,
+  };
 }

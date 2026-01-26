@@ -94,34 +94,44 @@ export const noteRepository = {
 Create `src/modules/note/commands/create-note.command.ts`:
 
 ```typescript
-import { CreateNoteInputSchema, type CreateNoteInput, type Note } from "../schemas/note.schema";
+import {
+  CreateNoteInputSchema,
+  type CreateNoteInput,
+  type Note,
+} from "../schemas/note.schema";
 import { noteRepository } from "../repository/note.repository";
-import { createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
-
-export type CreateNoteCommandResult = {
-  data: Note;
-};
+import type { ServiceResult } from "../../../utils/ServiceResult";
 
 export async function createNoteHandler(
   input: unknown,
-  logger: LoggerHelpers
-): Promise<CreateNoteCommandResult> {
+  logger: LoggerHelpers,
+): Promise<ServiceResult<Note>> {
   logger.debug("CreateNoteCommand received", { input });
 
   const parseResult = CreateNoteInputSchema.safeParse(input);
   if (!parseResult.success) {
     const errors = parseResult.error.flatten();
     logger.warn("Validation failed for CreateNoteCommand", { errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: Object.entries(errors.fieldErrors).map(([field, messages]) => ({
+        code: "VALIDATION_ERROR",
+        message: messages ? messages[0] : "Invalid value",
+        path: field,
+      })),
+    };
   }
 
   const validatedInput: CreateNoteInput = parseResult.data;
   const note = await noteRepository.create(validatedInput);
 
-  logger.info("Note created successfully", { noteId: note.id, title: note.title });
+  logger.info("Note created successfully", {
+    noteId: note.id,
+    title: note.title,
+  });
 
-  return { data: note };
+  return { isSuccess: true, data: note };
 }
 ```
 
@@ -133,24 +143,27 @@ Create `src/modules/note/queries/get-note-by-id.query.ts`:
 import type { Note } from "../schemas/note.schema";
 import { NoteIdParamSchema } from "../schemas/note.schema";
 import { noteRepository } from "../repository/note.repository";
-import { createNotFoundError, createValidationError } from "../../../shared/errors/app-error";
 import type { LoggerHelpers } from "../../../plugins/logger";
-
-export type GetNoteByIdQueryResult = {
-  data: Note;
-};
+import type { ServiceResult } from "../../../utils/ServiceResult";
 
 export async function getNoteByIdHandler(
   id: unknown,
-  logger: LoggerHelpers
-): Promise<GetNoteByIdQueryResult> {
+  logger: LoggerHelpers,
+): Promise<ServiceResult<Note>> {
   logger.debug("GetNoteByIdQuery received", { id });
 
   const parseResult = NoteIdParamSchema.safeParse({ id });
   if (!parseResult.success) {
     const errors = parseResult.error.flatten();
     logger.warn("Invalid note ID format", { id, errors });
-    throw createValidationError({ fieldErrors: errors.fieldErrors });
+    return {
+      isSuccess: false,
+      errors: Object.entries(errors.fieldErrors).map(([field, messages]) => ({
+        code: "VALIDATION_ERROR",
+        message: messages ? messages[0] : "Invalid value",
+        path: field,
+      })),
+    };
   }
 
   const validatedId = parseResult.data.id;
@@ -158,12 +171,20 @@ export async function getNoteByIdHandler(
 
   if (!note) {
     logger.warn("Note not found", { id: validatedId });
-    throw createNotFoundError("Note", validatedId);
+    return {
+      isSuccess: false,
+      errors: [
+        {
+          code: "RESOURCE_NOT_FOUND",
+          message: `Note with id ${validatedId} not found`,
+        },
+      ],
+    };
   }
 
   logger.debug("Note retrieved", { noteId: validatedId });
 
-  return { data: note };
+  return { isSuccess: true, data: note };
 }
 ```
 
@@ -183,7 +204,10 @@ const notesRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.post("/", async (request, reply) => {
     try {
       const result = await createNoteHandler(request.body, fastify.logger);
-      return reply.status(201).send(result);
+      if (result.isSuccess) {
+        return reply.status(201).send(result.data);
+      }
+      return reply.status(400).send(result.errors);
     } catch (error) {
       return handleError(error, reply);
     }
@@ -193,7 +217,10 @@ const notesRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
     try {
       const { id } = request.params as { id: string };
       const result = await getNoteByIdHandler(id, fastify.logger);
-      return reply.send(result);
+      if (result.isSuccess) {
+        return reply.status(200).send(result.data);
+      }
+      return reply.status(400).send(result.errors);
     } catch (error) {
       return handleError(error, reply);
     }
@@ -220,13 +247,13 @@ fastify.{method}("/{path}", async (request, reply) => {
 
 ### HTTP Methods
 
-| Method | Handler Type | Status Code |
-|--------|--------------|-------------|
-| POST | Command (create) | 201 |
-| GET | Query | 200 |
-| PUT | Command (update) | 200 |
-| PATCH | Command (partial update) | 200 |
-| DELETE | Command (delete) | 200 |
+| Method | Handler Type             | Status Code |
+| ------ | ------------------------ | ----------- |
+| POST   | Command (create)         | 201         |
+| GET    | Query                    | 200         |
+| PUT    | Command (update)         | 200         |
+| PATCH  | Command (partial update) | 200         |
+| DELETE | Command (delete)         | 200         |
 
 ## Handler Signature
 
@@ -236,11 +263,11 @@ All handlers receive raw input and a logger:
 export async function {handlerName}(
   input: unknown,           // Raw input (validate inside handler)
   logger: LoggerHelpers     // Logger instance
-): Promise<{ResultType}> {
+): Promise<ServiceResult<{ResultType}>> {
   // 1. Validate input with Zod
   // 2. Execute business logic
   // 3. Log result
-  // 4. Return typed result
+  // 4. Return ServiceResult (success or error)
 }
 ```
 

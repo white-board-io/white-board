@@ -6,21 +6,52 @@ category: architecture
 
 # Error Handling
 
-This project uses a structured error handling approach with i18n support. Errors return codes and format arguments that clients can use to display localized messages.
+This project uses a **Result Pattern** for business logic and validation errors. instead of throwing exceptions, handlers return a `ServiceResult` object that indicates success or failure.
+
+Exceptions (`throw`) are reserved for unexpected system errors (bugs, crashes, database connection failures) and are handled by a global error handler.
+
+## ServiceResult Pattern
+
+All command and query handlers return a `ServiceResult<T>`:
+
+```typescript
+export type ServiceResult<T> =
+  | { isSuccess: true; data: T }
+  | { isSuccess: false; errors: ServiceError[] };
+
+export type ServiceError = {
+  code: string;
+  message: string;
+  value?: string;
+};
+```
 
 ## Error Response Format
 
-All errors follow this structure:
+When a handler fails, the API responds with the list of errors:
+
+```json
+[
+  {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Todo with ID 123 not found",
+    "value": "123"
+  }
+]
+```
+
+Or if the API wraps it (depending on your route handler implementation):
 
 ```json
 {
   "error": {
-    "code": "ERROR_CODE",
-    "formatArgs": { "key": "value" },
-    "details": { "additional": "info" }
+     "code": "VALIDATION_ERROR",
+     "details": [...]
   }
 }
 ```
+
+_Note: Ensure your route handlers transform `result.errors` into the expected JSON response if strict schema validation is enabled._
 
 | Field        | Required | Purpose                                       |
 | ------------ | -------- | --------------------------------------------- |
@@ -73,7 +104,7 @@ private getStatusCode(code: ErrorCode): number {
 
 Located at `src/shared/errors/app-error.ts`:
 
-```typescript
+````typescript
 export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: number;
@@ -83,7 +114,7 @@ export class AppError extends Error {
   constructor(
     code: ErrorCode,
     formatArgs?: Record<string, string | number>,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     super(code);
     this.name = "AppError";
@@ -101,135 +132,70 @@ export class AppError extends Error {
     };
   }
 }
-```
 
-## Factory Functions
+## Returning Failures
 
-Use factory functions to create consistent errors:
+ Instead of throwing errors, return a failure object:
 
-### createValidationError
+ ### Validation Errors
 
-For schema validation failures with i18n error codes:
+ ```typescript
+ import { z } from "zod";
 
-```typescript
-import { z } from "zod";
-import { createValidationError } from "../../../shared/errors/app-error";
+ const parseResult = Schema.safeParse(input);
+ if (!parseResult.success) {
+   const errors = parseResult.error.flatten();
+   return {
+     isSuccess: false,
+     errors: Object.entries(errors.fieldErrors).map(([field, messages]) => ({
+       code: "VALIDATION_ERROR",
+       message: messages?.[0] || "Invalid value",
+       value: field // or specific value if needed
+     }))
+   };
+ }
+````
 
-const parseResult = Schema.safeParse(input);
-if (!parseResult.success) {
-  // Use z.flattenError() for Zod v4 (error.flatten() is deprecated)
-  const errors = z.flattenError(parseResult.error);
-  throw createValidationError({ fieldErrors: errors.fieldErrors });
-}
-```
-
-Response (with i18n error codes from schema):
-
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "details": {
-      "fieldErrors": {
-        "title": ["TITLE_FIELD_REQUIRED"]
-      }
-    }
-  }
-}
-```
-
-> **Note**: Field-level error codes like `TITLE_FIELD_REQUIRED` come from the Zod schema definitions. See [Schemas & Validation](./schemas-validation.md#i18n-error-codes) for details.
-
-### createNotFoundError
-
-For missing resources:
+### Resource Not Found
 
 ```typescript
-import { createNotFoundError } from "../../../shared/errors/app-error";
-
 const todo = await todoRepository.findById(id);
 if (!todo) {
-  throw createNotFoundError("Todo", id);
+  return {
+    isSuccess: false,
+    errors: [
+      {
+        code: "RESOURCE_NOT_FOUND",
+        message: `Todo with ID ${id} not found`,
+        value: id,
+      },
+    ],
+  };
 }
 ```
 
-Response:
-
-```json
-{
-  "error": {
-    "code": "RESOURCE_NOT_FOUND",
-    "formatArgs": {
-      "resource": "Todo",
-      "id": "abc-123"
-    }
-  }
-}
-```
-
-### createDuplicateError
-
-For unique constraint violations:
+### Business Logic Errors
 
 ```typescript
-import { createDuplicateError } from "../../../shared/errors/app-error";
-
-const existing = await todoRepository.findByTitle(title);
-if (existing) {
-  throw createDuplicateError("Todo", "title", title);
+if (existingItem) {
+  return {
+    isSuccess: false,
+    errors: [
+      {
+        code: "DUPLICATE_RESOURCE",
+        message: `Item with title "${title}" already exists`,
+        value: title,
+      },
+    ],
+  };
 }
-```
-
-Response:
-
-```json
-{
-  "error": {
-    "code": "DUPLICATE_RESOURCE",
-    "formatArgs": {
-      "resource": "Todo",
-      "field": "title",
-      "value": "My Todo"
-    }
-  }
-}
-```
-
-### createInternalError
-
-For unexpected errors:
-
-```typescript
-import { createInternalError } from "../../../shared/errors/app-error";
-
-throw createInternalError();
-```
-
-Response:
-
-```json
-{
-  "error": {
-    "code": "INTERNAL_ERROR"
-  }
-}
-```
-
-## Adding New Factory Functions
-
-To add a new factory function:
-
-```typescript
-export const createUnauthorizedError = (reason?: string) =>
-  new AppError("UNAUTHORIZED", reason ? { reason } : undefined);
-
-export const createForbiddenError = (resource: string, action: string) =>
-  new AppError("FORBIDDEN", { resource, action });
 ```
 
 ## Error Handler
 
-Routes use `createErrorHandler` from `src/shared/utils/error-handler.ts`:
+## Handling Results in Routes
+
+Route handlers act as the adapter between the HTTP layer and the service layer. They must check the result status:
 
 ```typescript
 import { createErrorHandler } from "../../../../shared/utils/error-handler";
@@ -240,8 +206,15 @@ const notesRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.post("/", async (request, reply) => {
     try {
       const result = await createNoteHandler(request.body, fastify.logger);
-      return reply.status(201).send(result);
+
+      if (result.isSuccess) {
+        return reply.status(201).send(result.data);
+      }
+
+      // Handle known failures
+      return reply.status(400).send(result.errors);
     } catch (error) {
+      // Handle unexpected crashes
       return handleError(error, reply);
     }
   });
@@ -277,7 +250,7 @@ function getErrorMessage(error: ErrorResponse): string {
 
   return Object.entries(error.formatArgs).reduce(
     (msg, [key, value]) => msg.replace(`{${key}}`, String(value)),
-    template
+    template,
   );
 }
 
