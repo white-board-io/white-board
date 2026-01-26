@@ -42,7 +42,7 @@ export function SignInForm() {
           <div className="relative">
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="Enter your password"
               className="pr-10"
