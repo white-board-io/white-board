@@ -82,6 +82,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
   void fastify.register(AutoLoad, {
     dir: join(__dirname, "plugins"),
     options: opts,
+    ignorePattern: /.*(test|spec).ts$/,
   });
 
   // This loads all plugins defined in routes
@@ -92,6 +93,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
   void fastify.register(AutoLoad, {
     dir: join(__dirname, "routes"),
     options: opts,
+    ignorePattern: /.*(test|spec).ts$/,
   });
 };
 

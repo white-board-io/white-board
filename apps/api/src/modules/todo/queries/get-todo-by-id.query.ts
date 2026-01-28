@@ -3,7 +3,7 @@ import { TodoIdParamSchema } from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
 import type { LoggerHelpers } from "../../../plugins/logger";
 import { mapZodErrors } from "@utils/mapZodErrors";
-import { ServiceResult } from "@utils/ServiceResult";
+import { ServiceResult } from "../../../utils/ServiceResult.ts";
 
 export type GetTodoByIdQueryResult = {
   data: Todo;

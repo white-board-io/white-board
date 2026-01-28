@@ -6,7 +6,7 @@ import {
 import { todoRepository } from "../repository/todo.repository";
 import { todoValidator } from "../validators/todo.validator";
 import type { LoggerHelpers } from "../../../plugins/logger";
-import { ServiceResult } from "@utils/ServiceResult";
+import { ServiceResult } from "../../../utils/ServiceResult.ts";
 import { mapZodErrors } from "@utils/mapZodErrors";
 
 export async function createTodoHandler(
