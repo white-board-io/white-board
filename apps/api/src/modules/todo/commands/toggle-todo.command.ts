@@ -3,7 +3,7 @@ import { todoRepository } from "../repository/todo.repository";
 import type { LoggerHelpers } from "../../../plugins/logger";
 import { Todo } from "../schemas/todo.schema";
 import { mapZodErrors } from "@utils/mapZodErrors";
-import { ServiceResult } from "../../../utils/ServiceResult.ts";
+import { ServiceResult } from "../../../utils/ServiceResult";
 
 export async function toggleTodoHandler(
   id: unknown,

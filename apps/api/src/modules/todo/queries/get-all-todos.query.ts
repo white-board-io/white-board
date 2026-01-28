@@ -2,7 +2,7 @@ import type { Todo } from "../schemas/todo.schema";
 import { ListTodosQuerySchema } from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
 import type { LoggerHelpers } from "../../../plugins/logger";
-import { ServiceResult } from "../../../utils/ServiceResult.ts";
+import { ServiceResult } from "../../../utils/ServiceResult";
 
 export async function getAllTodosHandler(
   queryParams: unknown,

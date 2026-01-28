@@ -1,7 +1,7 @@
 import { TodoIdParamSchema } from "../schemas/todo.schema";
 import { todoRepository } from "../repository/todo.repository";
 import type { LoggerHelpers } from "../../../plugins/logger";
-import { ServiceResult } from "../../../utils/ServiceResult.ts";
+import { ServiceResult } from "../../../utils/ServiceResult";
 import { mapZodErrors } from "@utils/mapZodErrors";
 
 export type DeleteTodoCommandResult = {
