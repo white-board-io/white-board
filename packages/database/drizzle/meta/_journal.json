@@ -43,6 +43,13 @@
       "when": 1769336651927,
       "tag": "0005_heavy_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1769833650635,
+      "tag": "0006_medical_zuras",
+      "breakpoints": true
     }
   ]
 }
