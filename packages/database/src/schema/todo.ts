@@ -28,20 +28,15 @@ export const todos = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    // Indexes for common query patterns:
-    // 1. Default sort by creation date
     index("created_at_idx").on(table.createdAt.desc()),
-    // 2. Filter by status + sort by creation date
     index("completed_created_at_idx").on(
       table.completed,
       table.createdAt.desc(),
     ),
-    // 3. Filter by priority + sort by creation date
     index("priority_created_at_idx").on(
       table.priority,
       table.createdAt.desc(),
     ),
-    // 4. Case-insensitive search on title
     index("title_idx").on(sql`lower(${table.title})`),
   ],
 );
