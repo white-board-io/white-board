@@ -66,6 +66,16 @@ describe("resetPasswordHandler", () => {
     expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    const result = await resetPasswordHandler(
+      { token: "", newPassword: "short" },
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should reset password, when token is valid", async () => {
     const verificationRecord = {
       id: "ver-1",

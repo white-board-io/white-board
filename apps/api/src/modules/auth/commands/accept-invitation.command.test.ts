@@ -40,6 +40,17 @@ describe("acceptInvitationHandler", () => {
     expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
   });
 
+  it("should return validation errors, when invitation id is missing", async () => {
+    const result = await acceptInvitationHandler(
+      {},
+      { user: { id: "user-1", email: "user@example.com" } } as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should accept invitation, when invitation is valid", async () => {
     const invitationRecord = {
       id: "inv-1",

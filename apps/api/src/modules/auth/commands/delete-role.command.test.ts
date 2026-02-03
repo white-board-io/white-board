@@ -48,6 +48,18 @@ describe("deleteRoleHandler", () => {
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
   });
 
+  it("should return validation errors, when ids are invalid", async () => {
+    const result = await deleteRoleHandler(
+      "bad",
+      "bad",
+      {} as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should delete role, when role is valid", async () => {
     requirePermission.mockResolvedValue(undefined);
     roleRepository.findById.mockResolvedValue({ id: "role-1", type: "custom" });

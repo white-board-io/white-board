@@ -49,6 +49,17 @@ describe("cancelInvitationHandler", () => {
     expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    const result = await cancelInvitationHandler(
+      { invitationId: "bad", organizationId: "bad" },
+      {} as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should cancel invitation, when invitation is pending", async () => {
     requirePermission.mockResolvedValue(undefined);
 

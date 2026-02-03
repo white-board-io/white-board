@@ -37,6 +37,13 @@ describe("toggleTodoHandler", () => {
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
   });
 
+  it("should return validation errors, when id is invalid", async () => {
+    const result = await toggleTodoHandler("bad-id", logger);
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("INVALID_TODO_ID_FORMAT");
+  });
+
   it("should toggle completion, when todo exists", async () => {
     const todo = {
       id: todoId,

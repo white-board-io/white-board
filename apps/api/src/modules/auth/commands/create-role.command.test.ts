@@ -45,6 +45,20 @@ describe("createRoleHandler", () => {
     expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    requirePermission.mockResolvedValue(undefined);
+
+    const result = await createRoleHandler(
+      organizationId,
+      { name: "" },
+      {} as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("ROLE_NAME_REQUIRED");
+  });
+
   it("should create role, when input is valid", async () => {
     requirePermission.mockResolvedValue(undefined);
     roleValidator.validateRoleUniqueness.mockResolvedValue(undefined);

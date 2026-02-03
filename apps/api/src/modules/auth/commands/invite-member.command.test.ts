@@ -57,6 +57,17 @@ describe("inviteMemberHandler", () => {
     expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    const result = await inviteMemberHandler(
+      { email: "bad", role: "", organizationId: "bad" },
+      { user: { id: "user-1" } } as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should create invitation, when input is valid", async () => {
     requirePermission.mockResolvedValue(undefined);
     roleValidator.validateRoleExists.mockResolvedValue(undefined);

@@ -49,6 +49,17 @@ describe("removeMemberHandler", () => {
     expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    const result = await removeMemberHandler(
+      { memberId: "bad", organizationId: "bad" },
+      {} as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should remove member, when member exists and not last owner", async () => {
     requirePermission.mockResolvedValue(undefined);
 

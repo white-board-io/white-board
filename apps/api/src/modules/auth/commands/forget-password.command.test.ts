@@ -57,6 +57,13 @@ describe("forgetPasswordHandler", () => {
     expect(result.data?.success).toBe(true);
   });
 
+  it("should return validation errors, when email is invalid", async () => {
+    const result = await forgetPasswordHandler({ email: "bad" }, logger);
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should create reset token, when user exists", async () => {
     db.select.mockReturnValue({
       from: vi.fn().mockReturnValue({

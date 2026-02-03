@@ -69,6 +69,24 @@ describe("signUpWithOrgHandler", () => {
     expect(result.errors?.[0]?.code).toBe("USER_ALREADY_EXISTS");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    const result = await signUpWithOrgHandler(
+      {
+        firstName: "",
+        lastName: "",
+        email: "not-an-email",
+        password: "short",
+        organizationName: "",
+        organizationType: "invalid",
+      },
+      new Headers(),
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should create organization and user, when input is valid", async () => {
     db.query.user.findFirst.mockResolvedValue(null);
 

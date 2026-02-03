@@ -40,6 +40,19 @@ describe("updateRolePermissionsHandler", () => {
     expect(result.errors?.length).toBeGreaterThan(0);
   });
 
+  it("should return validation errors, when permissions are empty", async () => {
+    const result = await updateRolePermissionsHandler(
+      organizationId,
+      roleId,
+      { permissions: [] },
+      {} as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("PERMISSIONS_REQUIRED");
+  });
+
   it("should update permissions, when role exists", async () => {
     requirePermission.mockResolvedValue(undefined);
     roleRepository.findById.mockResolvedValue({ id: "role-1" });

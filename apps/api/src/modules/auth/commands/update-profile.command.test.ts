@@ -49,6 +49,19 @@ describe("updateProfileHandler", () => {
     expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    getSession.mockResolvedValue({ user: { id: "user-1" } });
+
+    const result = await updateProfileHandler(
+      { image: "not-a-url" },
+      new Headers(),
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("IMAGE_URL_INVALID");
+  });
+
   it("should update profile, when session is present", async () => {
     getSession.mockResolvedValue({ user: { id: "user-1" } });
 

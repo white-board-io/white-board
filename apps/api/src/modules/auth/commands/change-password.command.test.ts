@@ -56,6 +56,17 @@ describe("changePasswordHandler", () => {
     expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    const result = await changePasswordHandler(
+      { currentPassword: "", newPassword: "short" },
+      { user: { id: "user-1" } } as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should change password, when current password is valid", async () => {
     db.select.mockReturnValue({
       from: vi.fn().mockReturnValue({

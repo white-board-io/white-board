@@ -42,6 +42,13 @@ describe("updateTodoHandler", () => {
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
   });
 
+  it("should return validation errors, when id is invalid", async () => {
+    const result = await updateTodoHandler("bad-id", {}, logger);
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("INVALID_TODO_ID_FORMAT");
+  });
+
   it("should update a todo, when input is valid", async () => {
     const existingTodo = {
       id: todoId,

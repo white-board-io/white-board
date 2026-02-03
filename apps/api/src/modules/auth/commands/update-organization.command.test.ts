@@ -53,6 +53,20 @@ describe("updateOrganizationHandler", () => {
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
   });
 
+  it("should return validation errors, when input is invalid", async () => {
+    requirePermission.mockResolvedValue(undefined);
+
+    const result = await updateOrganizationHandler(
+      organizationId,
+      { email: "bad", website: "bad" },
+      {} as never,
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should update organization, when input is valid", async () => {
     requirePermission.mockResolvedValue(undefined);
 

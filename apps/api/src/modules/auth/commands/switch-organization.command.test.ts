@@ -43,6 +43,18 @@ describe("switchOrganizationHandler", () => {
     expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
   });
 
+  it("should return validation errors, when organization id is invalid", async () => {
+    const result = await switchOrganizationHandler(
+      "bad",
+      { user: { id: "user-1" } } as never,
+      new Headers(),
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("ORGANIZATION_ID_INVALID");
+  });
+
   it("should switch organization, when user is a member", async () => {
     requireOrgMembership.mockResolvedValue(undefined);
 

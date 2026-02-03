@@ -31,6 +31,17 @@ describe("signInHandler", () => {
     expect(result.errors?.length).toBeGreaterThan(0);
   });
 
+  it("should return validation errors, when email is invalid", async () => {
+    const result = await signInHandler(
+      { email: "bad", password: "x" },
+      new Headers(),
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
   it("should return user data, when credentials are valid", async () => {
     const response = {
       headers: new Headers({ "set-cookie": "session=abc" }),
