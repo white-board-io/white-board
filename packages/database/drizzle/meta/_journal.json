@@ -50,6 +50,13 @@
       "when": 1770006022831,
       "tag": "0006_reflective_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770351532127,
+      "tag": "0007_futuristic_mongu",
+      "breakpoints": true
     }
   ]
 }
