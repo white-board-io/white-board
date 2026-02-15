@@ -42,7 +42,7 @@ export async function listInvitationsHandler(
 
   try {
     await requirePermission(request, validatedOrgId, "invitation", "read");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
