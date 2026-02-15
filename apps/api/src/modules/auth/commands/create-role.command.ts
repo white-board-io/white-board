@@ -35,7 +35,7 @@ export async function createRoleHandler(
 
   try {
     await requirePermission(request, orgId, "organization", "update");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
@@ -59,7 +59,7 @@ export async function createRoleHandler(
   // Assuming roleValidator also throws, wrapping it
   try {
     await roleValidator.validateRoleUniqueness(orgId, data.name);
-  } catch (error) {
+  } catch {
     // Need to handle error from validator. It likely throws AppError.
     // Since I am refactoring, I should check if I can make validator return boolean or Result, but for now catch and return Error.
     // roleValidator is likely using createDuplicateError which is DUPLICATE_RESOURCE
