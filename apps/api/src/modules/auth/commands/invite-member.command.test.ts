@@ -54,7 +54,9 @@ describe("inviteMemberHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -65,7 +67,9 @@ describe("inviteMemberHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should create invitation, when input is valid", async () => {
@@ -121,6 +125,8 @@ describe("inviteMemberHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.invitation.id).toBe("inv-1");
+    if (result.isSuccess) {
+      expect(result.data?.invitation.id).toBe("inv-1");
+    }
   });
 });

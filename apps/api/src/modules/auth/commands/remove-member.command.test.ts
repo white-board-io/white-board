@@ -46,7 +46,9 @@ describe("removeMemberHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -57,7 +59,9 @@ describe("removeMemberHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should remove member, when member exists and not last owner", async () => {
@@ -84,6 +88,8 @@ describe("removeMemberHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.success).toBe(true);
+    if (result.isSuccess) {
+      expect(result.data?.success).toBe(true);
+    }
   });
 });

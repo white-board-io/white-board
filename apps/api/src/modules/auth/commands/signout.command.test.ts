@@ -32,7 +32,9 @@ describe("signOutHandler", () => {
     const result = await signOutHandler(new Headers(), logger);
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    }
   });
 
   it("should sign out, when session is present", async () => {

@@ -28,7 +28,9 @@ describe("signInHandler", () => {
     const result = await signInHandler({}, new Headers(), logger);
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should return validation errors, when email is invalid", async () => {
@@ -39,7 +41,9 @@ describe("signInHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should return user data, when credentials are valid", async () => {
@@ -64,7 +68,9 @@ describe("signInHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.user.email).toBe("user@example.com");
-    expect(result.responseHeaders).toBe(response.headers);
+    if (result.isSuccess) {
+      expect(result.data?.user.email).toBe("user@example.com");
+      expect(result.responseHeaders).toBe(response.headers);
+    }
   });
 });

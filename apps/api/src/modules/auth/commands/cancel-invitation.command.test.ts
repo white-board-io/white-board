@@ -46,7 +46,9 @@ describe("cancelInvitationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -57,7 +59,9 @@ describe("cancelInvitationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should cancel invitation, when invitation is pending", async () => {
@@ -87,6 +91,8 @@ describe("cancelInvitationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.success).toBe(true);
+    if (result.isSuccess) {
+      expect(result.data?.success).toBe(true);
+    }
   });
 });
