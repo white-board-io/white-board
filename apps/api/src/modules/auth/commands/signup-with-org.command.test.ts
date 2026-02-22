@@ -66,7 +66,9 @@ describe("signUpWithOrgHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("USER_ALREADY_EXISTS");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("USER_ALREADY_EXISTS");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -84,7 +86,9 @@ describe("signUpWithOrgHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should create organization and user, when input is valid", async () => {
@@ -141,7 +145,9 @@ describe("signUpWithOrgHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.organization.id).toBe("org-1");
+    if (result.isSuccess) {
+      expect(result.data?.organization.id).toBe("org-1");
+    }
     expect(seedOrganizationRoles).toHaveBeenCalled();
   });
 });

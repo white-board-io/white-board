@@ -34,14 +34,18 @@ describe("toggleTodoHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+    }
   });
 
   it("should return validation errors, when id is invalid", async () => {
     const result = await toggleTodoHandler("bad-id", logger);
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("INVALID_TODO_ID_FORMAT");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("INVALID_TODO_ID_FORMAT");
+    }
   });
 
   it("should toggle completion, when todo exists", async () => {
@@ -63,6 +67,8 @@ describe("toggleTodoHandler", () => {
     const result = await toggleTodoHandler(todo.id, logger);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data).toEqual(updatedTodo);
+    if (result.isSuccess) {
+      expect(result.data).toEqual(updatedTodo);
+    }
   });
 });

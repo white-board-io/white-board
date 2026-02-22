@@ -33,7 +33,9 @@ describe("createTodoHandler", () => {
     const result = await createTodoHandler({}, logger);
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should return validation errors, when title is too long", async () => {
@@ -41,7 +43,9 @@ describe("createTodoHandler", () => {
     const result = await createTodoHandler({ title: longTitle }, logger);
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("TITLE_FIELD_MAX_LENGTH");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("TITLE_FIELD_MAX_LENGTH");
+    }
   });
 
   it("should create a todo, when input is valid", async () => {
@@ -64,6 +68,8 @@ describe("createTodoHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data).toEqual(todo);
+    if (result.isSuccess) {
+      expect(result.data).toEqual(todo);
+    }
   });
 });

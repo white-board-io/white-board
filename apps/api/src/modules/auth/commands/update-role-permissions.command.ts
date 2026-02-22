@@ -37,7 +37,7 @@ export async function updateRolePermissionsHandler(
 
   try {
     await requirePermission(request, orgId, "organization", "update");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
