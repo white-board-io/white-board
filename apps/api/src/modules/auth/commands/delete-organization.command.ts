@@ -29,7 +29,7 @@ export async function deleteOrganizationHandler(
 
   try {
     await requirePermission(request, validatedOrgId, "organization", "delete");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
