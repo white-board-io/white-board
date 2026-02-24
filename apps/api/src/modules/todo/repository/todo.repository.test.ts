@@ -14,7 +14,6 @@ const {
   const mockQueryBuilder = {
     where: mockWhere,
     orderBy: mockOrderBy,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     then: (resolve: any) => resolve([]), // Mock promise resolution
   };
 
