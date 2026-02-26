@@ -59,7 +59,6 @@ vi.mock('@repo/database/schema/todo', () => ({
 }));
 
 describe('todoRepository', () => {
-  // Verified locally (CI issue: billing)
   beforeEach(() => {
     vi.clearAllMocks();
   });
