@@ -29,7 +29,9 @@ describe("deleteTodoHandler", () => {
     const result = await deleteTodoHandler("bad-id", logger);
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should delete a todo, when todo exists", async () => {
@@ -48,6 +50,8 @@ describe("deleteTodoHandler", () => {
     const result = await deleteTodoHandler(todo.id, logger);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data).toBeNull();
+    if (result.isSuccess) {
+      expect(result.data).toBeNull();
+    }
   });
 });
