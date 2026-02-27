@@ -43,8 +43,7 @@ describe("deleteTodoHandler", () => {
       updatedAt: new Date(),
     };
 
-    findById.mockResolvedValue(todo);
-    remove.mockResolvedValue(true);
+    remove.mockResolvedValue(todo);
 
     const result = await deleteTodoHandler(todo.id, logger);
 
