@@ -50,6 +50,13 @@
       "when": 1770006022831,
       "tag": "0006_reflective_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772856784937,
+      "tag": "0007_fantastic_veda",
+      "breakpoints": true
     }
   ]
 }
