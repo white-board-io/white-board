@@ -108,25 +108,25 @@ export async function inviteMemberHandler(
     };
   }
 
-  const existingUser = await db
-    .select()
+  const [existingUser] = await db
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.email, validatedInput.email))
     .limit(1);
 
-  if (existingUser.length > 0) {
-    const existingMember = await db
-      .select()
+  if (existingUser) {
+    const [existingMember] = await db
+      .select({ id: member.id })
       .from(member)
       .where(
         and(
-          eq(member.userId, existingUser[0].id),
+          eq(member.userId, existingUser.id),
           eq(member.organizationId, validatedInput.organizationId),
         ),
       )
       .limit(1);
 
-    if (existingMember.length > 0) {
+    if (existingMember) {
       return {
         isSuccess: false,
         errors: [
@@ -140,8 +140,8 @@ export async function inviteMemberHandler(
     }
   }
 
-  const existingInvitation = await db
-    .select()
+  const [existingInvitation] = await db
+    .select({ id: invitation.id })
     .from(invitation)
     .where(
       and(
@@ -152,7 +152,7 @@ export async function inviteMemberHandler(
     )
     .limit(1);
 
-  if (existingInvitation.length > 0) {
+  if (existingInvitation) {
     return {
       isSuccess: false,
       errors: [
