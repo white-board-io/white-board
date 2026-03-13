@@ -108,15 +108,16 @@ export async function inviteMemberHandler(
     };
   }
 
+  // ⚡ Bolt: Select only the ID for existence checks to minimize data transfer
   const existingUser = await db
-    .select()
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.email, validatedInput.email))
     .limit(1);
 
   if (existingUser.length > 0) {
     const existingMember = await db
-      .select()
+      .select({ id: member.id })
       .from(member)
       .where(
         and(
@@ -141,7 +142,7 @@ export async function inviteMemberHandler(
   }
 
   const existingInvitation = await db
-    .select()
+    .select({ id: invitation.id })
     .from(invitation)
     .where(
       and(
