@@ -54,8 +54,9 @@ export async function listInvitationsHandler(
     };
   }
 
+  // Optimization: Select only 'id' and 'isDeleted' columns instead of the entire row for existence check
   const [org] = await db
-    .select()
+    .select({ id: organization.id, isDeleted: organization.isDeleted })
     .from(organization)
     .where(eq(organization.id, validatedOrgId))
     .limit(1);

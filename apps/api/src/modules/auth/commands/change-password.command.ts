@@ -62,8 +62,9 @@ export async function changePasswordHandler(
 
   const validatedInput: ChangePasswordInput = parseResult.data;
 
+  // Optimization: Select only 'id' and 'password' since other account fields aren't needed
   const [accountRecord] = await db
-    .select()
+    .select({ id: account.id, password: account.password })
     .from(account)
     .where(
       and(

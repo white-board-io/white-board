@@ -44,8 +44,9 @@ export async function requireOrgMembership(
     throw createUnauthorizedError();
   }
 
+  // Optimization: Select only necessary columns ('id', 'role') to avoid fetching the full record during auth checks
   const [memberRecord] = await db
-    .select()
+    .select({ id: member.id, role: member.role })
     .from(member)
     .where(
       and(
