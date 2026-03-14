@@ -52,8 +52,9 @@ export async function removeMemberHandler(
     };
   }
 
+  // Optimization: Select only necessary columns to avoid fetching the full record
   const [memberRecord] = await db
-    .select()
+    .select({ id: member.id, role: member.role })
     .from(member)
     .where(
       and(

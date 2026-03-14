@@ -71,8 +71,9 @@ export async function inviteMemberHandler(
     };
   }
 
+  // Optimization: Select only 'id' and 'name' columns instead of full row
   const [org] = await db
-    .select()
+    .select({ id: organization.id, name: organization.name })
     .from(organization)
     .where(eq(organization.id, validatedInput.organizationId))
     .limit(1);
@@ -108,15 +109,17 @@ export async function inviteMemberHandler(
     };
   }
 
+  // Optimization: Select only 'id' to avoid fetching the full record
   const existingUser = await db
-    .select()
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.email, validatedInput.email))
     .limit(1);
 
   if (existingUser.length > 0) {
+    // Optimization: Select only 'id' to avoid fetching the full record
     const existingMember = await db
-      .select()
+      .select({ id: member.id })
       .from(member)
       .where(
         and(
@@ -140,8 +143,9 @@ export async function inviteMemberHandler(
     }
   }
 
+  // Optimization: Select only 'id' to avoid fetching the full record
   const existingInvitation = await db
-    .select()
+    .select({ id: invitation.id })
     .from(invitation)
     .where(
       and(

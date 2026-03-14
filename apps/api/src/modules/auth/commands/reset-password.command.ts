@@ -65,8 +65,9 @@ export async function resetPasswordHandler(
 
   const email = verificationRecord.identifier.replace("password-reset:", "");
 
+  // Optimization: Select only the 'id' column for existence and lookup instead of the full user object
   const [existingUser] = await db
-    .select()
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.email, email))
     .limit(1);
