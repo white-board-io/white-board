@@ -14,8 +14,8 @@ Database schema changes with migration files
 
 ## Common Files
 
-- `**/schema.*`
 - `migrations/*`
+- `**/schema.*`
 
 ## Suggested Sequence
 
