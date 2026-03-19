@@ -1,0 +1,6 @@
+interface:
+  display_name: "White Board"
+  short_description: "Repo-specific patterns and workflows for white-board"
+  default_prompt: "Use the white-board repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
