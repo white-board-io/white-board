@@ -28,7 +28,7 @@ Activate this skill when:
 
 ## Commit Conventions
 
-Follow these commit message conventions based on 116 analyzed commits.
+Follow these commit message conventions based on 127 analyzed commits.
 
 ### Commit Style: Conventional Commits
 
@@ -41,7 +41,7 @@ Follow these commit message conventions based on 116 analyzed commits.
 
 ### Message Guidelines
 
-- Average message length: ~59 characters
+- Average message length: ~60 characters
 - Keep first line concise and descriptive
 - Use imperative mood ("Add feature" not "Added feature")
 
@@ -208,7 +208,7 @@ These workflows were detected from analyzing commit patterns.
 
 Database schema changes with migration files
 
-**Frequency**: ~3 times per month
+**Frequency**: ~2 times per month
 
 **Steps**:
 1. Create migration file
@@ -216,21 +216,20 @@ Database schema changes with migration files
 3. Generate/update types
 
 **Files typically involved**:
-- `**/schema.*`
 - `migrations/*`
 
 **Example commit sequence**:
 ```
-⚡ Bolt: Add database indexes for todos
-⚡ Bolt: Add database indexes for todos
-Merge pull request #50 from white-board-io/bolt/add-todo-indexes-8558514873253853618
+feat: add white-board ECC bundle (.claude/commands/database-migration.md)
+feat: add white-board ECC bundle (.claude/commands/feature-development.md)
+feat: add white-board ECC bundle (.claude/commands/refactoring.md)
 ```
 
 ### Feature Development
 
 Standard feature implementation workflow
 
-**Frequency**: ~27 times per month
+**Frequency**: ~30 times per month
 
 **Steps**:
 1. Add feature implementation
@@ -238,17 +237,17 @@ Standard feature implementation workflow
 3. Update documentation
 
 **Files typically involved**:
-- `apps/web/src/routes/sign-in/components/*`
-- `apps/web/src/routes/sign-in/*`
-- `packages/database/src/schema/*`
+- `apps/api/src/modules/auth/commands/*`
+- `apps/api/src/modules/todo/commands/*`
+- `apps/api/*`
 - `**/*.test.*`
 - `**/api/**`
 
 **Example commit sequence**:
 ```
-feat: Implement sign-in form with logo and password visibility toggle
-fix: Fixed `showPassword` for showing password in the textbox.
-fix: Added animation for `eyeoff` and `eye` icon toggle.
+Add zod validation coverage for command tests
+Merge pull request #52 from white-board-io/codex/vitest-api
+feat(api): optimize todo mutation commands
 ```
 
 ### Refactoring
@@ -267,134 +266,95 @@ Code refactoring and cleanup workflow
 
 **Example commit sequence**:
 ```
-refactor: Update ESLint configurations across multiple packages to include dynamic `tsconfigRootDir` based on file location
-Merge pull request #36 from white-board-io/arun/login-page-integration
-⚡ Bolt: Add database indexes for todos
+feat(api): optimize todo mutation commands
+feat: add white-board ECC bundle (.claude/ecc-tools.json)
+feat: add white-board ECC bundle (.claude/skills/white-board/SKILL.md)
 ```
 
-### Add Or Update Ecc Bundle
+### Add Or Update Ecc Bundle Command Docs
 
-Adds or updates ECC (Extensible Command Collection) bundle files for white-board, including commands, skills, agent configs, and identity/tools files.
+Adds or updates ECC bundle command documentation and configuration files for white-board, including feature development, database migration, and refactoring commands.
 
-**Frequency**: ~4 times per month
+**Frequency**: ~3 times per month
 
 **Steps**:
-1. Add or update .claude/commands/*.md files (such as feature-development.md, database-migration.md, refactoring.md)
-2. Add or update .claude/skills/white-board/SKILL.md
-3. Add or update .agents/skills/white-board/SKILL.md
-4. Add or update .codex/agents/*.toml (docs-researcher.toml, reviewer.toml, explorer.toml)
-5. Add or update .claude/identity.json
-6. Add or update .claude/ecc-tools.json
-7. Add or update .agents/skills/white-board/agents/openai.yaml
+1. Add or update .claude/commands/feature-development.md
+2. Add or update .claude/commands/database-migration.md
+3. Add or update .claude/commands/refactoring.md
 
 **Files typically involved**:
 - `.claude/commands/feature-development.md`
 - `.claude/commands/database-migration.md`
 - `.claude/commands/refactoring.md`
-- `.claude/skills/white-board/SKILL.md`
+
+**Example commit sequence**:
+```
+Add or update .claude/commands/feature-development.md
+Add or update .claude/commands/database-migration.md
+Add or update .claude/commands/refactoring.md
+```
+
+### Add Or Update Skill Documentation
+
+Adds or updates SKILL.md documentation files for white-board skills in both .agents and .claude directories.
+
+**Frequency**: ~2 times per month
+
+**Steps**:
+1. Add or update .agents/skills/white-board/SKILL.md
+2. Add or update .claude/skills/white-board/SKILL.md
+
+**Files typically involved**:
 - `.agents/skills/white-board/SKILL.md`
+- `.claude/skills/white-board/SKILL.md`
+
+**Example commit sequence**:
+```
+Add or update .agents/skills/white-board/SKILL.md
+Add or update .claude/skills/white-board/SKILL.md
+```
+
+### Add Or Update Codex Agent Configs
+
+Adds or updates agent configuration files for docs-researcher, reviewer, and explorer agents in the .codex/agents directory.
+
+**Frequency**: ~2 times per month
+
+**Steps**:
+1. Add or update .codex/agents/docs-researcher.toml
+2. Add or update .codex/agents/reviewer.toml
+3. Add or update .codex/agents/explorer.toml
+
+**Files typically involved**:
 - `.codex/agents/docs-researcher.toml`
 - `.codex/agents/reviewer.toml`
 - `.codex/agents/explorer.toml`
+
+**Example commit sequence**:
+```
+Add or update .codex/agents/docs-researcher.toml
+Add or update .codex/agents/reviewer.toml
+Add or update .codex/agents/explorer.toml
+```
+
+### Add Or Update Identity And Tooling Configs
+
+Adds or updates identity and ECC tools configuration files for white-board in the .claude directory.
+
+**Frequency**: ~2 times per month
+
+**Steps**:
+1. Add or update .claude/identity.json
+2. Add or update .claude/ecc-tools.json
+
+**Files typically involved**:
 - `.claude/identity.json`
 - `.claude/ecc-tools.json`
-- `.agents/skills/white-board/agents/openai.yaml`
 
 **Example commit sequence**:
 ```
-Add or update .claude/commands/*.md files (such as feature-development.md, database-migration.md, refactoring.md)
-Add or update .claude/skills/white-board/SKILL.md
-Add or update .agents/skills/white-board/SKILL.md
-Add or update .codex/agents/*.toml (docs-researcher.toml, reviewer.toml, explorer.toml)
 Add or update .claude/identity.json
 Add or update .claude/ecc-tools.json
-Add or update .agents/skills/white-board/agents/openai.yaml
-```
-
-### Add Or Update Database Schema And Migrations
-
-Adds or modifies database schema files and generates corresponding migration SQL and metadata files.
-
-**Frequency**: ~2 times per month
-
-**Steps**:
-1. Edit or add schema file (e.g., packages/database/src/schema/*.ts)
-2. Generate migration SQL file (e.g., packages/database/drizzle/*.sql)
-3. Update migration metadata (e.g., packages/database/drizzle/meta/*.json)
-4. Update migration journal (e.g., packages/database/drizzle/meta/_journal.json)
-
-**Files typically involved**:
-- `packages/database/src/schema/todo.ts`
-- `packages/database/drizzle/*.sql`
-- `packages/database/drizzle/meta/*.json`
-- `packages/database/drizzle/meta/_journal.json`
-
-**Example commit sequence**:
-```
-Edit or add schema file (e.g., packages/database/src/schema/*.ts)
-Generate migration SQL file (e.g., packages/database/drizzle/*.sql)
-Update migration metadata (e.g., packages/database/drizzle/meta/*.json)
-Update migration journal (e.g., packages/database/drizzle/meta/_journal.json)
-```
-
-### Add Or Update Api Command Unit Tests
-
-Adds or updates unit tests for API command handlers, especially for authentication and todo modules.
-
-**Frequency**: ~3 times per month
-
-**Steps**:
-1. Add or update test files for each command (e.g., create-todo.command.test.ts, accept-invitation.command.test.ts)
-2. Optionally update CI workflow to include new tests (.github/workflows/ci.yml)
-3. Update or add Vitest configuration (apps/api/vitest.config.ts)
-4. Add or update package.json/test-related config if needed
-
-**Files typically involved**:
-- `apps/api/src/modules/auth/commands/*.command.test.ts`
-- `apps/api/src/modules/todo/commands/*.command.test.ts`
-- `.github/workflows/ci.yml`
-- `apps/api/vitest.config.ts`
-- `apps/api/package.json`
-
-**Example commit sequence**:
-```
-Add or update test files for each command (e.g., create-todo.command.test.ts, accept-invitation.command.test.ts)
-Optionally update CI workflow to include new tests (.github/workflows/ci.yml)
-Update or add Vitest configuration (apps/api/vitest.config.ts)
-Add or update package.json/test-related config if needed
-```
-
-### Feature Development Ui Auth Sign In
-
-Implements or updates the sign-in UI, including form logic, assets, and style improvements.
-
-**Frequency**: ~2 times per month
-
-**Steps**:
-1. Add or update sign-in form component (apps/web/src/routes/sign-in/components/sign-in-form.tsx)
-2. Add or update sign-in page (apps/web/src/routes/sign-in/index.tsx)
-3. Add or update logo and banner assets (apps/web/public/images/whiteboard-logo.svg, sign-in-banner.jpg)
-4. Update route tree if necessary (apps/web/src/routeTree.gen.ts)
-5. Update or add styles (packages/ui/src/components/ui/button.tsx, packages/ui/src/globals.css)
-6. Optionally add or update UI text components
-
-**Files typically involved**:
-- `apps/web/src/routes/sign-in/components/sign-in-form.tsx`
-- `apps/web/src/routes/sign-in/index.tsx`
-- `apps/web/public/images/whiteboard-logo.svg`
-- `apps/web/public/images/sign-in-banner.jpg`
-- `apps/web/src/routeTree.gen.ts`
-- `packages/ui/src/components/ui/button.tsx`
-- `packages/ui/src/globals.css`
-
-**Example commit sequence**:
-```
-Add or update sign-in form component (apps/web/src/routes/sign-in/components/sign-in-form.tsx)
-Add or update sign-in page (apps/web/src/routes/sign-in/index.tsx)
-Add or update logo and banner assets (apps/web/public/images/whiteboard-logo.svg, sign-in-banner.jpg)
-Update route tree if necessary (apps/web/src/routeTree.gen.ts)
-Update or add styles (packages/ui/src/components/ui/button.tsx, packages/ui/src/globals.css)
-Optionally add or update UI text components
 ```
 
 
