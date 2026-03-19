@@ -28,7 +28,7 @@ Activate this skill when:
 
 ## Commit Conventions
 
-Follow these commit message conventions based on 127 analyzed commits.
+Follow these commit message conventions based on 138 analyzed commits.
 
 ### Commit Style: Conventional Commits
 
@@ -41,7 +41,7 @@ Follow these commit message conventions based on 127 analyzed commits.
 
 ### Message Guidelines
 
-- Average message length: ~60 characters
+- Average message length: ~61 characters
 - Keep first line concise and descriptive
 - Use imperative mood ("Add feature" not "Added feature")
 
@@ -236,51 +236,22 @@ Standard feature implementation workflow
 2. Add tests for feature
 3. Update documentation
 
-**Files typically involved**:
-- `apps/api/src/modules/auth/commands/*`
-- `apps/api/src/modules/todo/commands/*`
-- `apps/api/*`
-- `**/*.test.*`
-- `**/api/**`
-
 **Example commit sequence**:
 ```
-Add zod validation coverage for command tests
-Merge pull request #52 from white-board-io/codex/vitest-api
-feat(api): optimize todo mutation commands
+feat: add white-board ECC bundle (.codex/agents/reviewer.toml)
+feat: add white-board ECC bundle (.codex/agents/docs-researcher.toml)
+feat: add white-board ECC bundle (.claude/homunculus/instincts/inherited/white-board-instincts.yaml)
 ```
 
-### Refactoring
+### Add Command Documentation
 
-Code refactoring and cleanup workflow
+Adds or updates a command documentation file for the white-board ECC bundle.
 
-**Frequency**: ~3 times per month
+**Frequency**: ~5 times per month
 
 **Steps**:
-1. Ensure tests pass before refactor
-2. Refactor code structure
-3. Verify tests still pass
-
-**Files typically involved**:
-- `src/**/*`
-
-**Example commit sequence**:
-```
-feat(api): optimize todo mutation commands
-feat: add white-board ECC bundle (.claude/ecc-tools.json)
-feat: add white-board ECC bundle (.claude/skills/white-board/SKILL.md)
-```
-
-### Add Or Update Ecc Bundle Command Docs
-
-Adds or updates ECC bundle command documentation and configuration files for white-board, including feature development, database migration, and refactoring commands.
-
-**Frequency**: ~3 times per month
-
-**Steps**:
-1. Add or update .claude/commands/feature-development.md
-2. Add or update .claude/commands/database-migration.md
-3. Add or update .claude/commands/refactoring.md
+1. Create or update a Markdown file in .claude/commands/ (e.g., feature-development.md, database-migration.md, refactoring.md)
+2. Commit the file with a message referencing the command and ECC bundle
 
 **Files typically involved**:
 - `.claude/commands/feature-development.md`
@@ -289,20 +260,20 @@ Adds or updates ECC bundle command documentation and configuration files for whi
 
 **Example commit sequence**:
 ```
-Add or update .claude/commands/feature-development.md
-Add or update .claude/commands/database-migration.md
-Add or update .claude/commands/refactoring.md
+Create or update a Markdown file in .claude/commands/ (e.g., feature-development.md, database-migration.md, refactoring.md)
+Commit the file with a message referencing the command and ECC bundle
 ```
 
-### Add Or Update Skill Documentation
+### Add Skill Documentation
 
-Adds or updates SKILL.md documentation files for white-board skills in both .agents and .claude directories.
+Adds or updates SKILL.md documentation for a white-board skill in both .agents and .claude directories.
 
-**Frequency**: ~2 times per month
+**Frequency**: ~4 times per month
 
 **Steps**:
-1. Add or update .agents/skills/white-board/SKILL.md
-2. Add or update .claude/skills/white-board/SKILL.md
+1. Create or update .agents/skills/white-board/SKILL.md
+2. Create or update .claude/skills/white-board/SKILL.md
+3. Commit both files with a message referencing the ECC bundle
 
 **Files typically involved**:
 - `.agents/skills/white-board/SKILL.md`
@@ -310,20 +281,22 @@ Adds or updates SKILL.md documentation files for white-board skills in both .age
 
 **Example commit sequence**:
 ```
-Add or update .agents/skills/white-board/SKILL.md
-Add or update .claude/skills/white-board/SKILL.md
+Create or update .agents/skills/white-board/SKILL.md
+Create or update .claude/skills/white-board/SKILL.md
+Commit both files with a message referencing the ECC bundle
 ```
 
-### Add Or Update Codex Agent Configs
+### Add Codex Agent Config
 
-Adds or updates agent configuration files for docs-researcher, reviewer, and explorer agents in the .codex/agents directory.
+Adds or updates agent configuration TOML files for Codex agents (docs-researcher, reviewer, explorer).
 
-**Frequency**: ~2 times per month
+**Frequency**: ~5 times per month
 
 **Steps**:
-1. Add or update .codex/agents/docs-researcher.toml
-2. Add or update .codex/agents/reviewer.toml
-3. Add or update .codex/agents/explorer.toml
+1. Create or update .codex/agents/docs-researcher.toml
+2. Create or update .codex/agents/reviewer.toml
+3. Create or update .codex/agents/explorer.toml
+4. Commit the relevant files with a message referencing the ECC bundle
 
 **Files typically involved**:
 - `.codex/agents/docs-researcher.toml`
@@ -332,20 +305,22 @@ Adds or updates agent configuration files for docs-researcher, reviewer, and exp
 
 **Example commit sequence**:
 ```
-Add or update .codex/agents/docs-researcher.toml
-Add or update .codex/agents/reviewer.toml
-Add or update .codex/agents/explorer.toml
+Create or update .codex/agents/docs-researcher.toml
+Create or update .codex/agents/reviewer.toml
+Create or update .codex/agents/explorer.toml
+Commit the relevant files with a message referencing the ECC bundle
 ```
 
-### Add Or Update Identity And Tooling Configs
+### Update Identity And Tools
 
-Adds or updates identity and ECC tools configuration files for white-board in the .claude directory.
+Updates the identity and ECC tools configuration for the white-board ECC bundle.
 
-**Frequency**: ~2 times per month
+**Frequency**: ~4 times per month
 
 **Steps**:
-1. Add or update .claude/identity.json
-2. Add or update .claude/ecc-tools.json
+1. Create or update .claude/identity.json
+2. Create or update .claude/ecc-tools.json
+3. Commit the relevant files with a message referencing the ECC bundle
 
 **Files typically involved**:
 - `.claude/identity.json`
@@ -353,8 +328,9 @@ Adds or updates identity and ECC tools configuration files for white-board in th
 
 **Example commit sequence**:
 ```
-Add or update .claude/identity.json
-Add or update .claude/ecc-tools.json
+Create or update .claude/identity.json
+Create or update .claude/ecc-tools.json
+Commit the relevant files with a message referencing the ECC bundle
 ```
 
 
