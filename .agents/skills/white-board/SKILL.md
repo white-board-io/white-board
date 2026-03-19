@@ -1,6 +1,6 @@
 ---
 name: white-board-conventions
-description: Development conventions and patterns for white-board. TypeScript project with mixed commits.
+description: Development conventions and patterns for white-board. TypeScript project with conventional commits.
 ---
 
 # White Board Conventions
@@ -28,20 +28,20 @@ Activate this skill when:
 
 ## Commit Conventions
 
-Follow these commit message conventions based on 80 analyzed commits.
+Follow these commit message conventions based on 94 analyzed commits.
 
-### Commit Style: Mixed Style
+### Commit Style: Conventional Commits
 
 ### Prefixes Used
 
-- `chore`
 - `feat`
+- `chore`
 - `fix`
 - `refactor`
 
 ### Message Guidelines
 
-- Average message length: ~56 characters
+- Average message length: ~58 characters
 - Keep first line concise and descriptive
 - Use imperative mood ("Add feature" not "Added feature")
 
@@ -49,7 +49,7 @@ Follow these commit message conventions based on 80 analyzed commits.
 *Commit message example*
 
 ```text
-feat(api): optimize todo mutation commands
+feat: add white-board ECC bundle (.claude/commands/refactoring.md)
 ```
 
 *Commit message example*
@@ -79,19 +79,19 @@ chore: delete example API route.
 *Commit message example*
 
 ```text
-Merge pull request #52 from white-board-io/codex/vitest-api
+feat: add white-board ECC bundle (.claude/commands/feature-development.md)
 ```
 
 *Commit message example*
 
 ```text
-Add zod validation coverage for command tests
+feat: add white-board ECC bundle (.claude/commands/database-migration.md)
 ```
 
 *Commit message example*
 
 ```text
-Add command unit tests and CI test job
+feat: add white-board ECC bundle (.codex/agents/docs-researcher.toml)
 ```
 
 ## Architecture
@@ -208,7 +208,7 @@ These workflows were detected from analyzing commit patterns.
 
 Database schema changes with migration files
 
-**Frequency**: ~5 times per month
+**Frequency**: ~4 times per month
 
 **Steps**:
 1. Create migration file
@@ -216,21 +216,21 @@ Database schema changes with migration files
 3. Generate/update types
 
 **Files typically involved**:
-- `**/schema.*`
 - `migrations/*`
+- `**/schema.*`
 
 **Example commit sequence**:
 ```
-Merge pull request #9 from white-board-io/dynamic-rbac-8626716045509101620
-Merge branch 'main' into setup-shadcn-ui-17901637440597929696
-chore: Updated bun.lock
+chore: Added skills for vercel/ gemini/ query client etc
+chore: Updated roles repository
+chore: Configure and updated bun to run the fastify server.
 ```
 
 ### Feature Development
 
 Standard feature implementation workflow
 
-**Frequency**: ~10 times per month
+**Frequency**: ~17 times per month
 
 **Steps**:
 1. Add feature implementation
@@ -238,24 +238,24 @@ Standard feature implementation workflow
 3. Update documentation
 
 **Files typically involved**:
-- `apps/api/src/modules/auth/commands/*`
-- `apps/api/src/modules/auth/middleware/*`
-- `apps/api/src/modules/auth/queries/*`
+- `apps/api/src/*`
+- `apps/api/src/routes/api/v1/auth/*`
+- `apps/api/src/routes/api/v1/todos/*`
 - `**/*.test.*`
 - `**/api/**`
 
 **Example commit sequence**:
 ```
-Merge pull request #9 from white-board-io/dynamic-rbac-8626716045509101620
-Merge branch 'main' into setup-shadcn-ui-17901637440597929696
-chore: Updated bun.lock
+feat: Integrated swagger
+fix: Addressed review comments
+Merge pull request #33 from white-board-io/arun/configure-swagger
 ```
 
 ### Refactoring
 
 Code refactoring and cleanup workflow
 
-**Frequency**: ~5 times per month
+**Frequency**: ~4 times per month
 
 **Steps**:
 1. Ensure tests pass before refactor
@@ -267,22 +267,22 @@ Code refactoring and cleanup workflow
 
 **Example commit sequence**:
 ```
-chore: update typescript and fastify versions
-Merge pull request #16 from white-board-io/update-typescript-fastify-8624900904337714054
-refactor: separate repository and validator layers
+refactor: standardize error handling and operation outcomes using ServiceResult and ValidationResult.
+refactor: standardize auth module error handling to return ServiceResult and introduce a new HTTP response utility.
+feat: Add user existence check to organization signup and streamline auth API response schemas by removing success/data wrappers and standardizing error formats.
 ```
 
-### Add Or Update Database Table Or Index
+### Add Or Update Database Entity And Migration
 
-Adds or modifies a database table or index, including schema changes and migration files.
+Adds or updates a database entity (table/schema) and generates corresponding migration and metadata files.
 
 **Frequency**: ~2 times per month
 
 **Steps**:
-1. Edit or create a file in packages/database/src/schema/*.ts to define or update the table structure.
-2. Generate a new migration SQL file in packages/database/drizzle/*.sql.
-3. Update migration metadata in packages/database/drizzle/meta/*.json.
-4. Update packages/database/drizzle/meta/_journal.json to track applied migrations.
+1. Edit or create a schema file in packages/database/src/schema/*.ts
+2. Generate a migration SQL file in packages/database/drizzle/*.sql
+3. Update migration metadata in packages/database/drizzle/meta/*.json
+4. Update migration journal in packages/database/drizzle/meta/_journal.json
 
 **Files typically involved**:
 - `packages/database/src/schema/*.ts`
@@ -292,116 +292,102 @@ Adds or modifies a database table or index, including schema changes and migrati
 
 **Example commit sequence**:
 ```
-Edit or create a file in packages/database/src/schema/*.ts to define or update the table structure.
-Generate a new migration SQL file in packages/database/drizzle/*.sql.
-Update migration metadata in packages/database/drizzle/meta/*.json.
-Update packages/database/drizzle/meta/_journal.json to track applied migrations.
+Edit or create a schema file in packages/database/src/schema/*.ts
+Generate a migration SQL file in packages/database/drizzle/*.sql
+Update migration metadata in packages/database/drizzle/meta/*.json
+Update migration journal in packages/database/drizzle/meta/_journal.json
 ```
 
-### Add Or Update Api Command Or Query
+### Api Command Or Query Implementation And Unit Tests
 
-Implements or updates an API command/query handler, often with associated tests and validators.
+Implements or updates API command/query handlers and adds or updates their unit tests.
 
-**Frequency**: ~3 times per month
+**Frequency**: ~2 times per month
 
 **Steps**:
-1. Create or update command/query handler in apps/api/src/modules/*/commands/*.command.ts or apps/api/src/modules/*/queries/*.query.ts.
-2. Update or add corresponding validator in apps/api/src/modules/*/validators/*.validator.ts.
-3. Update or add repository logic in apps/api/src/modules/*/repository/*.repository.ts.
-4. Update or add tests in apps/api/src/modules/*/commands/*.command.test.ts or apps/api/src/modules/*/queries/*.query.test.ts.
+1. Edit or create command/query handler in apps/api/src/modules/*/commands/*.command.ts or apps/api/src/modules/*/queries/*.query.ts
+2. Edit or create corresponding test in apps/api/src/modules/*/commands/*.command.test.ts
+3. Optionally update repository or validator files in the same module
 
 **Files typically involved**:
 - `apps/api/src/modules/*/commands/*.command.ts`
+- `apps/api/src/modules/*/commands/*.command.test.ts`
 - `apps/api/src/modules/*/queries/*.query.ts`
 - `apps/api/src/modules/*/validators/*.validator.ts`
-- `apps/api/src/modules/*/repository/*.repository.ts`
-- `apps/api/src/modules/*/commands/*.command.test.ts`
-- `apps/api/src/modules/*/queries/*.query.test.ts`
+- `apps/api/src/modules/*/repository/*.ts`
 
 **Example commit sequence**:
 ```
-Create or update command/query handler in apps/api/src/modules/*/commands/*.command.ts or apps/api/src/modules/*/queries/*.query.ts.
-Update or add corresponding validator in apps/api/src/modules/*/validators/*.validator.ts.
-Update or add repository logic in apps/api/src/modules/*/repository/*.repository.ts.
-Update or add tests in apps/api/src/modules/*/commands/*.command.test.ts or apps/api/src/modules/*/queries/*.query.test.ts.
+Edit or create command/query handler in apps/api/src/modules/*/commands/*.command.ts or apps/api/src/modules/*/queries/*.query.ts
+Edit or create corresponding test in apps/api/src/modules/*/commands/*.command.test.ts
+Optionally update repository or validator files in the same module
 ```
 
-### Add Or Update Api Route
+### Add Or Update Api Route And Docs
 
-Adds or updates an API route, connecting it to commands/queries and updating documentation.
+Adds or updates API routes and related documentation or configuration.
 
 **Frequency**: ~2 times per month
 
 **Steps**:
-1. Create or update route handler in apps/api/src/routes/api/v1/*/index.ts or similar.
-2. Connect route to command/query handlers.
-3. Update or add OpenAPI/Swagger documentation if needed.
-4. Update or add tests for the route.
+1. Edit or create route handler in apps/api/src/routes/api/v1/*/*.ts
+2. Update or add documentation in apps/api/docs/*.md
+3. Update configuration files such as apps/api/package.json or apps/api/src/app.ts
 
 **Files typically involved**:
-- `apps/api/src/routes/api/v1/*/index.ts`
 - `apps/api/src/routes/api/v1/*/*.ts`
-- `apps/api/src/modules/*/commands/*.command.ts`
-- `apps/api/src/modules/*/queries/*.query.ts`
 - `apps/api/docs/*.md`
+- `apps/api/package.json`
+- `apps/api/src/app.ts`
 
 **Example commit sequence**:
 ```
-Create or update route handler in apps/api/src/routes/api/v1/*/index.ts or similar.
-Connect route to command/query handlers.
-Update or add OpenAPI/Swagger documentation if needed.
-Update or add tests for the route.
+Edit or create route handler in apps/api/src/routes/api/v1/*/*.ts
+Update or add documentation in apps/api/docs/*.md
+Update configuration files such as apps/api/package.json or apps/api/src/app.ts
 ```
 
-### Add Or Update Unit Tests For Commands
+### Ui Component Library Expansion
 
-Adds or updates unit tests for API command handlers, often in bulk for a module.
+Adds or updates UI components and related styles in the shared UI package.
 
 **Frequency**: ~2 times per month
 
 **Steps**:
-1. Create or update test files in apps/api/src/modules/*/commands/*.command.test.ts.
-2. Optionally update test configuration (e.g., vitest config).
-3. Optionally update CI configuration to run tests.
+1. Create or update component files in packages/ui/src/components/ui/*.tsx
+2. Edit shared styles in packages/ui/src/globals.css
+3. Update package configuration in packages/ui/package.json or packages/ui/tsconfig.json
 
 **Files typically involved**:
-- `apps/api/src/modules/*/commands/*.command.test.ts`
-- `apps/api/vitest.config.ts`
-- `.github/workflows/ci.yml`
+- `packages/ui/src/components/ui/*.tsx`
+- `packages/ui/src/globals.css`
+- `packages/ui/package.json`
+- `packages/ui/tsconfig.json`
 
 **Example commit sequence**:
 ```
-Create or update test files in apps/api/src/modules/*/commands/*.command.test.ts.
-Optionally update test configuration (e.g., vitest config).
-Optionally update CI configuration to run tests.
+Create or update component files in packages/ui/src/components/ui/*.tsx
+Edit shared styles in packages/ui/src/globals.css
+Update package configuration in packages/ui/package.json or packages/ui/tsconfig.json
 ```
 
-### Standardize Or Refactor Error Handling
+### Eslint Config Standardization
 
-Refactors code to standardize error handling and operation outcomes, often introducing or updating utility types and helpers.
+Updates ESLint configuration files across multiple packages for consistency.
 
 **Frequency**: ~2 times per month
 
 **Steps**:
-1. Update command/query handlers to use ServiceResult or ValidationResult types.
-2. Update or create utility files (e.g., apps/api/src/utils/ServiceResult.ts, ValidationResult.ts, mapZodErrors.ts).
-3. Update route handlers to use new error handling utilities.
-4. Update documentation to reflect new conventions.
+1. Edit eslint.config.mts or eslint.config.mjs in multiple apps or packages
 
 **Files typically involved**:
-- `apps/api/src/modules/*/commands/*.command.ts`
-- `apps/api/src/modules/*/queries/*.query.ts`
-- `apps/api/src/utils/ServiceResult.ts`
-- `apps/api/src/utils/ValidationResult.ts`
-- `apps/api/src/utils/mapZodErrors.ts`
-- `apps/api/docs/*.md`
+- `apps/*/eslint.config.mts`
+- `packages/*/eslint.config.mts`
+- `packages/*/eslint.config.mjs`
 
 **Example commit sequence**:
 ```
-Update command/query handlers to use ServiceResult or ValidationResult types.
-Update or create utility files (e.g., apps/api/src/utils/ServiceResult.ts, ValidationResult.ts, mapZodErrors.ts).
-Update route handlers to use new error handling utilities.
-Update documentation to reflect new conventions.
+Edit eslint.config.mts or eslint.config.mjs in multiple apps or packages
 ```
 
 
@@ -411,6 +397,7 @@ Based on analysis of the codebase, follow these practices:
 
 ### Do
 
+- Use conventional commit format (feat:, fix:, etc.)
 - Keep feature code co-located in feature folders
 - Write tests using vitest
 - Follow *.test.ts naming pattern
@@ -419,6 +406,7 @@ Based on analysis of the codebase, follow these practices:
 
 ### Don't
 
+- Don't write vague commit messages
 - Don't skip tests for new features
 - Don't deviate from established patterns without discussion
 
