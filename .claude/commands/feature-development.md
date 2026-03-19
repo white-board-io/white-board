@@ -14,11 +14,7 @@ Standard feature implementation workflow
 
 ## Common Files
 
-- `apps/api/src/modules/auth/commands/*`
-- `apps/api/src/modules/todo/commands/*`
-- `apps/api/*`
-- `**/*.test.*`
-- `**/api/**`
+- Inspect the files touched by the related commits before editing.
 
 ## Suggested Sequence
 
