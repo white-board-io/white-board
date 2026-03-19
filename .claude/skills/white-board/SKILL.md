@@ -28,7 +28,7 @@ Activate this skill when:
 
 ## Commit Conventions
 
-Follow these commit message conventions based on 105 analyzed commits.
+Follow these commit message conventions based on 116 analyzed commits.
 
 ### Commit Style: Conventional Commits
 
@@ -208,7 +208,7 @@ These workflows were detected from analyzing commit patterns.
 
 Database schema changes with migration files
 
-**Frequency**: ~4 times per month
+**Frequency**: ~3 times per month
 
 **Steps**:
 1. Create migration file
@@ -221,16 +221,16 @@ Database schema changes with migration files
 
 **Example commit sequence**:
 ```
-feat: Add organization and member entities, roles, and a signup flow for organizations.
-feat: Propagate authentication response headers from API commands to the client.
-feat: Add active organization ID to user sessions and update authentication flows to manage it.
+⚡ Bolt: Add database indexes for todos
+⚡ Bolt: Add database indexes for todos
+Merge pull request #50 from white-board-io/bolt/add-todo-indexes-8558514873253853618
 ```
 
 ### Feature Development
 
 Standard feature implementation workflow
 
-**Frequency**: ~23 times per month
+**Frequency**: ~27 times per month
 
 **Steps**:
 1. Add feature implementation
@@ -238,24 +238,24 @@ Standard feature implementation workflow
 3. Update documentation
 
 **Files typically involved**:
-- `apps/api/src/modules/auth/commands/*`
-- `apps/api/src/modules/auth/utils/*`
+- `apps/web/src/routes/sign-in/components/*`
+- `apps/web/src/routes/sign-in/*`
 - `packages/database/src/schema/*`
 - `**/*.test.*`
 - `**/api/**`
 
 **Example commit sequence**:
 ```
-feat: Add organization and member entities, roles, and a signup flow for organizations.
-feat: Propagate authentication response headers from API commands to the client.
-feat: Add active organization ID to user sessions and update authentication flows to manage it.
+feat: Implement sign-in form with logo and password visibility toggle
+fix: Fixed `showPassword` for showing password in the textbox.
+fix: Added animation for `eyeoff` and `eye` icon toggle.
 ```
 
 ### Refactoring
 
 Code refactoring and cleanup workflow
 
-**Frequency**: ~5 times per month
+**Frequency**: ~3 times per month
 
 **Steps**:
 1. Ensure tests pass before refactor
@@ -267,159 +267,134 @@ Code refactoring and cleanup workflow
 
 **Example commit sequence**:
 ```
-refactor: standardize error handling and operation outcomes using ServiceResult and ValidationResult.
-refactor: standardize auth module error handling to return ServiceResult and introduce a new HTTP response utility.
-feat: Add user existence check to organization signup and streamline auth API response schemas by removing success/data wrappers and standardizing error formats.
+refactor: Update ESLint configurations across multiple packages to include dynamic `tsconfigRootDir` based on file location
+Merge pull request #36 from white-board-io/arun/login-page-integration
+⚡ Bolt: Add database indexes for todos
 ```
 
-### Add Or Update Database Table Or Index
+### Add Or Update Ecc Bundle
 
-Adds or modifies a database table or index, including schema, migration SQL, and metadata snapshot updates.
+Adds or updates ECC (Extensible Command Collection) bundle files for white-board, including commands, skills, agent configs, and identity/tools files.
+
+**Frequency**: ~4 times per month
+
+**Steps**:
+1. Add or update .claude/commands/*.md files (such as feature-development.md, database-migration.md, refactoring.md)
+2. Add or update .claude/skills/white-board/SKILL.md
+3. Add or update .agents/skills/white-board/SKILL.md
+4. Add or update .codex/agents/*.toml (docs-researcher.toml, reviewer.toml, explorer.toml)
+5. Add or update .claude/identity.json
+6. Add or update .claude/ecc-tools.json
+7. Add or update .agents/skills/white-board/agents/openai.yaml
+
+**Files typically involved**:
+- `.claude/commands/feature-development.md`
+- `.claude/commands/database-migration.md`
+- `.claude/commands/refactoring.md`
+- `.claude/skills/white-board/SKILL.md`
+- `.agents/skills/white-board/SKILL.md`
+- `.codex/agents/docs-researcher.toml`
+- `.codex/agents/reviewer.toml`
+- `.codex/agents/explorer.toml`
+- `.claude/identity.json`
+- `.claude/ecc-tools.json`
+- `.agents/skills/white-board/agents/openai.yaml`
+
+**Example commit sequence**:
+```
+Add or update .claude/commands/*.md files (such as feature-development.md, database-migration.md, refactoring.md)
+Add or update .claude/skills/white-board/SKILL.md
+Add or update .agents/skills/white-board/SKILL.md
+Add or update .codex/agents/*.toml (docs-researcher.toml, reviewer.toml, explorer.toml)
+Add or update .claude/identity.json
+Add or update .claude/ecc-tools.json
+Add or update .agents/skills/white-board/agents/openai.yaml
+```
+
+### Add Or Update Database Schema And Migrations
+
+Adds or modifies database schema files and generates corresponding migration SQL and metadata files.
 
 **Frequency**: ~2 times per month
 
 **Steps**:
-1. Edit or create a schema file (e.g., packages/database/src/schema/*.ts)
-2. Generate a migration SQL file (e.g., packages/database/drizzle/*.sql)
-3. Update migration metadata (e.g., packages/database/drizzle/meta/*.json, _journal.json)
+1. Edit or add schema file (e.g., packages/database/src/schema/*.ts)
+2. Generate migration SQL file (e.g., packages/database/drizzle/*.sql)
+3. Update migration metadata (e.g., packages/database/drizzle/meta/*.json)
+4. Update migration journal (e.g., packages/database/drizzle/meta/_journal.json)
 
 **Files typically involved**:
-- `packages/database/src/schema/*.ts`
+- `packages/database/src/schema/todo.ts`
 - `packages/database/drizzle/*.sql`
 - `packages/database/drizzle/meta/*.json`
 - `packages/database/drizzle/meta/_journal.json`
 
 **Example commit sequence**:
 ```
-Edit or create a schema file (e.g., packages/database/src/schema/*.ts)
-Generate a migration SQL file (e.g., packages/database/drizzle/*.sql)
-Update migration metadata (e.g., packages/database/drizzle/meta/*.json, _journal.json)
+Edit or add schema file (e.g., packages/database/src/schema/*.ts)
+Generate migration SQL file (e.g., packages/database/drizzle/*.sql)
+Update migration metadata (e.g., packages/database/drizzle/meta/*.json)
+Update migration journal (e.g., packages/database/drizzle/meta/_journal.json)
 ```
 
-### Add Or Update Api Command With Tests
+### Add Or Update Api Command Unit Tests
 
-Implements or updates an API command handler and its corresponding unit tests.
+Adds or updates unit tests for API command handlers, especially for authentication and todo modules.
 
-**Frequency**: ~2 times per month
+**Frequency**: ~3 times per month
 
 **Steps**:
-1. Edit or create command handler file (e.g., apps/api/src/modules/*/commands/*.command.ts)
-2. Edit or create corresponding unit test file (e.g., apps/api/src/modules/*/commands/*.command.test.ts)
-3. Optionally update repository or utility files if logic changes
+1. Add or update test files for each command (e.g., create-todo.command.test.ts, accept-invitation.command.test.ts)
+2. Optionally update CI workflow to include new tests (.github/workflows/ci.yml)
+3. Update or add Vitest configuration (apps/api/vitest.config.ts)
+4. Add or update package.json/test-related config if needed
 
 **Files typically involved**:
-- `apps/api/src/modules/*/commands/*.command.ts`
-- `apps/api/src/modules/*/commands/*.command.test.ts`
-- `apps/api/src/modules/*/repository/*.ts`
-
-**Example commit sequence**:
-```
-Edit or create command handler file (e.g., apps/api/src/modules/*/commands/*.command.ts)
-Edit or create corresponding unit test file (e.g., apps/api/src/modules/*/commands/*.command.test.ts)
-Optionally update repository or utility files if logic changes
-```
-
-### Add Or Update Api Endpoint Or Route
-
-Adds or updates API route files and related query/validator files, often with supporting documentation.
-
-**Frequency**: ~2 times per month
-
-**Steps**:
-1. Edit or create route file (e.g., apps/api/src/routes/api/v1/*/index.ts)
-2. Edit or create query/validator files (e.g., apps/api/src/modules/*/queries/*.query.ts, validators/*.validator.ts)
-3. Update documentation if needed (e.g., apps/api/docs/*.md)
-
-**Files typically involved**:
-- `apps/api/src/routes/api/v1/*/index.ts`
-- `apps/api/src/modules/*/queries/*.query.ts`
-- `apps/api/src/modules/*/validators/*.validator.ts`
-- `apps/api/docs/*.md`
-
-**Example commit sequence**:
-```
-Edit or create route file (e.g., apps/api/src/routes/api/v1/*/index.ts)
-Edit or create query/validator files (e.g., apps/api/src/modules/*/queries/*.query.ts, validators/*.validator.ts)
-Update documentation if needed (e.g., apps/api/docs/*.md)
-```
-
-### Add Or Update Unit Tests And Ci
-
-Adds or updates unit tests for commands and configures CI to run them.
-
-**Frequency**: ~2 times per month
-
-**Steps**:
-1. Edit or create unit test files (e.g., *.command.test.ts)
-2. Update or add CI workflow configuration (e.g., .github/workflows/ci.yml)
-3. Update test runner config if needed (e.g., vitest.config.ts, package.json)
-
-**Files typically involved**:
-- `apps/api/src/modules/*/commands/*.command.test.ts`
+- `apps/api/src/modules/auth/commands/*.command.test.ts`
+- `apps/api/src/modules/todo/commands/*.command.test.ts`
 - `.github/workflows/ci.yml`
 - `apps/api/vitest.config.ts`
 - `apps/api/package.json`
-- `package.json`
 
 **Example commit sequence**:
 ```
-Edit or create unit test files (e.g., *.command.test.ts)
-Update or add CI workflow configuration (e.g., .github/workflows/ci.yml)
-Update test runner config if needed (e.g., vitest.config.ts, package.json)
+Add or update test files for each command (e.g., create-todo.command.test.ts, accept-invitation.command.test.ts)
+Optionally update CI workflow to include new tests (.github/workflows/ci.yml)
+Update or add Vitest configuration (apps/api/vitest.config.ts)
+Add or update package.json/test-related config if needed
 ```
 
-### Add Or Update Auth Flows And Entities
+### Feature Development Ui Auth Sign In
 
-Implements or modifies authentication flows, organization/member entities, and related database schema.
+Implements or updates the sign-in UI, including form logic, assets, and style improvements.
 
 **Frequency**: ~2 times per month
 
 **Steps**:
-1. Edit or create command files for auth (e.g., signup, signin, switch-organization)
-2. Edit or create middleware and utility files for auth
-3. Update database schema and migrations for auth-related tables
-4. Update route files and propagate changes to client
+1. Add or update sign-in form component (apps/web/src/routes/sign-in/components/sign-in-form.tsx)
+2. Add or update sign-in page (apps/web/src/routes/sign-in/index.tsx)
+3. Add or update logo and banner assets (apps/web/public/images/whiteboard-logo.svg, sign-in-banner.jpg)
+4. Update route tree if necessary (apps/web/src/routeTree.gen.ts)
+5. Update or add styles (packages/ui/src/components/ui/button.tsx, packages/ui/src/globals.css)
+6. Optionally add or update UI text components
 
 **Files typically involved**:
-- `apps/api/src/modules/auth/commands/*.command.ts`
-- `apps/api/src/modules/auth/middleware/*.ts`
-- `apps/api/src/modules/auth/utils/*.ts`
-- `apps/api/src/routes/api/v1/auth/index.ts`
-- `packages/database/src/schema/auth.ts`
-- `packages/database/drizzle/*.sql`
-- `packages/database/drizzle/meta/*.json`
-- `packages/database/drizzle/meta/_journal.json`
+- `apps/web/src/routes/sign-in/components/sign-in-form.tsx`
+- `apps/web/src/routes/sign-in/index.tsx`
+- `apps/web/public/images/whiteboard-logo.svg`
+- `apps/web/public/images/sign-in-banner.jpg`
+- `apps/web/src/routeTree.gen.ts`
+- `packages/ui/src/components/ui/button.tsx`
+- `packages/ui/src/globals.css`
 
 **Example commit sequence**:
 ```
-Edit or create command files for auth (e.g., signup, signin, switch-organization)
-Edit or create middleware and utility files for auth
-Update database schema and migrations for auth-related tables
-Update route files and propagate changes to client
-```
-
-### Standardize Or Refactor Shared Logic
-
-Refactors shared logic (e.g., error handling, validation, ESLint config) across multiple modules or packages for consistency.
-
-**Frequency**: ~2 times per month
-
-**Steps**:
-1. Edit shared utility files (e.g., ServiceResult, ValidationResult, error mappers)
-2. Edit ESLint or other config files across apps/packages
-3. Update documentation to reflect new conventions
-
-**Files typically involved**:
-- `apps/api/src/utils/*.ts`
-- `apps/api/docs/*.md`
-- `apps/*/eslint.config.mts`
-- `packages/*/eslint.config.mts`
-
-**Example commit sequence**:
-```
-Edit shared utility files (e.g., ServiceResult, ValidationResult, error mappers)
-Edit ESLint or other config files across apps/packages
-Update documentation to reflect new conventions
+Add or update sign-in form component (apps/web/src/routes/sign-in/components/sign-in-form.tsx)
+Add or update sign-in page (apps/web/src/routes/sign-in/index.tsx)
+Add or update logo and banner assets (apps/web/public/images/whiteboard-logo.svg, sign-in-banner.jpg)
+Update route tree if necessary (apps/web/src/routeTree.gen.ts)
+Update or add styles (packages/ui/src/components/ui/button.tsx, packages/ui/src/globals.css)
+Optionally add or update UI text components
 ```
 
 
