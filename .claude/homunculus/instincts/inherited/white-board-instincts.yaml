@@ -1,0 +1,382 @@
+# Instincts generated from https://github.com/white-board-io/white-board
+# Generated: 2026-03-19T04:18:07.053Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: white-board-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Commit Length
+
+## Action
+
+Write moderate-length commit messages (~56 characters)
+
+## Evidence
+
+- Average commit message length: 56 chars
+- Based on 80 commits
+
+---
+id: white-board-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: white-board-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: white-board-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: white-board-arch-feature-based
+trigger: "when adding a new feature"
+confidence: 0.85
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Arch Feature Based
+
+## Action
+
+Create a new folder in src/features/ with all related code colocated
+
+## Evidence
+
+- Feature-based module organization detected
+- Structure: src/features/[feature-name]/
+
+---
+id: white-board-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.ts
+
+---
+id: white-board-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: white-board-test-mocking
+trigger: "when mocking dependencies in tests"
+confidence: 0.75
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Test Mocking
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Mocking pattern detected: vi.mock
+- Consistent across test files
+
+---
+id: white-board-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: white-board-workflow-database-migration
+trigger: "when modifying the database schema or adding tables"
+confidence: 0.75
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Database Migration
+
+## Action
+
+Follow the database-migration workflow:
+1. Create migration file
+2. Update schema definitions
+3. Generate/update types
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~5x per month
+- Files: **/schema.*, migrations/*
+
+---
+id: white-board-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~10x per month
+- Files: apps/api/src/modules/auth/commands/*, apps/api/src/modules/auth/middleware/*, apps/api/src/modules/auth/queries/*
+
+---
+id: white-board-workflow-refactoring
+trigger: "when refactoring code"
+confidence: 0.75
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Refactoring
+
+## Action
+
+Follow the refactoring workflow:
+1. Ensure tests pass before refactor
+2. Refactor code structure
+3. Verify tests still pass
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~5x per month
+- Files: src/**/*
+
+---
+id: white-board-workflow-add-or-update-database-table-or-index
+trigger: "when doing add or update database table or index"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Add Or Update Database Table Or Index
+
+## Action
+
+Follow the add-or-update-database-table-or-index workflow:
+1. Edit or create a file in packages/database/src/schema/*.ts to define or update the table structure.
+2. Generate a new migration SQL file in packages/database/drizzle/*.sql.
+3. Update migration metadata in packages/database/drizzle/meta/*.json.
+4. Update packages/database/drizzle/meta/_journal.json to track applied migrations.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: packages/database/src/schema/*.ts, packages/database/drizzle/*.sql, packages/database/drizzle/meta/*.json
+
+---
+id: white-board-workflow-add-or-update-api-command-or-query
+trigger: "when doing add or update api command or query"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Add Or Update Api Command Or Query
+
+## Action
+
+Follow the add-or-update-api-command-or-query workflow:
+1. Create or update command/query handler in apps/api/src/modules/*/commands/*.command.ts or apps/api/src/modules/*/queries/*.query.ts.
+2. Update or add corresponding validator in apps/api/src/modules/*/validators/*.validator.ts.
+3. Update or add repository logic in apps/api/src/modules/*/repository/*.repository.ts.
+4. Update or add tests in apps/api/src/modules/*/commands/*.command.test.ts or apps/api/src/modules/*/queries/*.query.test.ts.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: apps/api/src/modules/*/commands/*.command.ts, apps/api/src/modules/*/queries/*.query.ts, apps/api/src/modules/*/validators/*.validator.ts
+
+---
+id: white-board-workflow-add-or-update-api-route
+trigger: "when doing add or update api route"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Add Or Update Api Route
+
+## Action
+
+Follow the add-or-update-api-route workflow:
+1. Create or update route handler in apps/api/src/routes/api/v1/*/index.ts or similar.
+2. Connect route to command/query handlers.
+3. Update or add OpenAPI/Swagger documentation if needed.
+4. Update or add tests for the route.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: apps/api/src/routes/api/v1/*/index.ts, apps/api/src/routes/api/v1/*/*.ts, apps/api/src/modules/*/commands/*.command.ts
+
+---
+id: white-board-workflow-add-or-update-unit-tests-for-commands
+trigger: "when doing add or update unit tests for commands"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Add Or Update Unit Tests For Commands
+
+## Action
+
+Follow the add-or-update-unit-tests-for-commands workflow:
+1. Create or update test files in apps/api/src/modules/*/commands/*.command.test.ts.
+2. Optionally update test configuration (e.g., vitest config).
+3. Optionally update CI configuration to run tests.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: apps/api/src/modules/*/commands/*.command.test.ts, apps/api/vitest.config.ts, .github/workflows/ci.yml
+
+---
+id: white-board-workflow-standardize-or-refactor-error-handling
+trigger: "when doing standardize or refactor error handling"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/white-board-io/white-board
+---
+
+# White Board Workflow Standardize Or Refactor Error Handling
+
+## Action
+
+Follow the standardize-or-refactor-error-handling workflow:
+1. Update command/query handlers to use ServiceResult or ValidationResult types.
+2. Update or create utility files (e.g., apps/api/src/utils/ServiceResult.ts, ValidationResult.ts, mapZodErrors.ts).
+3. Update route handlers to use new error handling utilities.
+4. Update documentation to reflect new conventions.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: apps/api/src/modules/*/commands/*.command.ts, apps/api/src/modules/*/queries/*.query.ts, apps/api/src/utils/ServiceResult.ts
+
