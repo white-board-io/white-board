@@ -14,9 +14,9 @@ Standard feature implementation workflow
 
 ## Common Files
 
-- `apps/api/src/modules/auth/commands/*`
-- `apps/api/src/modules/auth/middleware/*`
-- `apps/api/src/modules/auth/queries/*`
+- `apps/api/src/*`
+- `apps/api/src/routes/api/v1/auth/*`
+- `apps/api/src/routes/api/v1/todos/*`
 - `**/*.test.*`
 - `**/api/**`
 
