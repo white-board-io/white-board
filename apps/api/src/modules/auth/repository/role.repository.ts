@@ -83,21 +83,32 @@ export const roleRepository = {
       .leftJoin(permission, eq(role.id, permission.roleId))
       .where(eq(role.organizationId, organizationId));
 
-    const rolesMap = new Map<string, any>();
+    // Performance optimization: Using a single let map = rolesMap.get() and
+    // caching it instead of using has() and then get() to prevent duplicate hash operations.
+    type RoleEntity = typeof role.$inferSelect;
+    type PermissionEntity = typeof permission.$inferSelect;
+    type RoleWithPermissions = RoleEntity & {
+      permissions: PermissionEntity[];
+    };
+
+    const rolesMap = new Map<string, RoleWithPermissions>();
     
     for (const row of rows) {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      let roleEntry = rolesMap.get(roleData.id);
+
+      if (!roleEntry) {
+        roleEntry = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, roleEntry);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        roleEntry.permissions.push(permData);
       }
     }
 
