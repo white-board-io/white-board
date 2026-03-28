@@ -56,15 +56,13 @@ export async function forgetPasswordHandler(
 
   const resetUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:3000"}/reset-password?token=${token}`;
 
-  console.log("=".repeat(60));
-  console.log("📧 PASSWORD RESET EMAIL");
-  console.log("=".repeat(60));
-  console.log(`To: ${validatedInput.email}`);
-  console.log(`Subject: Reset your password`);
-  console.log("-".repeat(60));
-  console.log(`Click the link to reset your password: ${resetUrl}`);
-  console.log(`This link expires in 1 hour.`);
-  console.log("=".repeat(60));
+  // Simulate sending email without blocking the event loop with multiple synchronous console.logs
+  logger.info("📧 PASSWORD RESET EMAIL", {
+    to: validatedInput.email,
+    subject: "Reset your password",
+    body: `Click the link to reset your password: ${resetUrl}`,
+    note: "This link expires in 1 hour.",
+  });
 
   logger.info("Password reset email sent", { email: validatedInput.email });
 
