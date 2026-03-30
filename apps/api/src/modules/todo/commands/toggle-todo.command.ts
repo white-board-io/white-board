@@ -24,26 +24,13 @@ export async function toggleTodoHandler(
 
   const validatedId = parseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
-    logger.warn("Todo not found for toggle", { id: validatedId });
-    return {
-      errors: [
-        {
-          code: "RESOURCE_NOT_FOUND",
-          message: "Todo not found",
-        },
-      ],
-      isSuccess: false,
-    };
-  }
-
-  const newCompletedStatus = !existingTodo.completed;
-  const updatedTodo = await todoRepository.update(validatedId, {
-    completed: newCompletedStatus,
-  });
+  // ⚡ Bolt: Performance optimization
+  // Utilize atomic toggle to reduce DB queries from 2 to 1 (50% reduction)
+  // Eliminates need for initial findById check before updating.
+  const updatedTodo = await todoRepository.toggle(validatedId);
 
   if (!updatedTodo) {
+    logger.warn("Todo not found for toggle", { id: validatedId });
     return {
       errors: [
         {
@@ -57,8 +44,8 @@ export async function toggleTodoHandler(
 
   logger.info("Todo status toggled", {
     todoId: validatedId,
-    title: existingTodo.title,
-    completed: newCompletedStatus,
+    title: updatedTodo.title,
+    completed: updatedTodo.completed,
   });
 
   return {
