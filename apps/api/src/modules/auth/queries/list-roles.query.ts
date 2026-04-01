@@ -41,32 +41,21 @@ export async function listRolesHandler(
     };
   }
 
-  const rows = await roleRepository.listByOrg(orgId);
+  const aggregatedRoles = await roleRepository.listByOrg(orgId);
 
-  // Aggregate
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const roleMap = new Map<string, any>();
-
-  for (const row of rows) {
-    if (!roleMap.has(row.role.id)) {
-      roleMap.set(row.role.id, {
-        ...row.role,
-        permissions: [],
-      });
-    }
-
-    if (row.permission) {
-      roleMap.get(row.role.id).permissions.push({
-        resource: row.permission.resource,
-        actions: row.permission.actions,
-      });
-    }
-  }
+  // Map to the expected DTO format (projecting permissions)
+  const roles = aggregatedRoles.map((role: any) => ({
+    ...role,
+    permissions: role.permissions.map((p: any) => ({
+      resource: p.resource,
+      actions: p.actions,
+    })),
+  }));
 
   return {
     isSuccess: true,
     data: {
-      roles: Array.from(roleMap.values()),
+      roles,
     },
   };
 }
