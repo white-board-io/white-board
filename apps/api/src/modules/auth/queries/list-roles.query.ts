@@ -43,30 +43,20 @@ export async function listRolesHandler(
 
   const rows = await roleRepository.listByOrg(orgId);
 
-  // Aggregate
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const roleMap = new Map<string, any>();
-
-  for (const row of rows) {
-    if (!roleMap.has(row.role.id)) {
-      roleMap.set(row.role.id, {
-        ...row.role,
-        permissions: [],
-      });
-    }
-
-    if (row.permission) {
-      roleMap.get(row.role.id).permissions.push({
-        resource: row.permission.resource,
-        actions: row.permission.actions,
-      });
-    }
-  }
+  // Map the aggregated roles to remove internal IDs from the permissions array,
+  // matching the expected API response schema.
+  const roles = rows.map((role) => ({
+    ...role,
+    permissions: role.permissions.map((p: any) => ({
+      resource: p.resource,
+      actions: p.actions,
+    })),
+  }));
 
   return {
     isSuccess: true,
     data: {
-      roles: Array.from(roleMap.values()),
+      roles,
     },
   };
 }
