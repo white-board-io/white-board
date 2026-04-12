@@ -48,15 +48,19 @@ export async function listRolesHandler(
   const roleMap = new Map<string, any>();
 
   for (const row of rows) {
-    if (!roleMap.has(row.role.id)) {
-      roleMap.set(row.role.id, {
+    // Performance Optimization: Fetch once and cache into `roleEntry`
+    // to avoid redundant Map.has() then Map.get() lookup passes.
+    let roleEntry = roleMap.get(row.role.id);
+    if (!roleEntry) {
+      roleEntry = {
         ...row.role,
         permissions: [],
-      });
+      };
+      roleMap.set(row.role.id, roleEntry);
     }
 
     if (row.permission) {
-      roleMap.get(row.role.id).permissions.push({
+      roleEntry.permissions.push({
         resource: row.permission.resource,
         actions: row.permission.actions,
       });
