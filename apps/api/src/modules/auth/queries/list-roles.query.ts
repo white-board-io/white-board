@@ -43,20 +43,24 @@ export async function listRolesHandler(
 
   const rows = await roleRepository.listByOrg(orgId);
 
-  // Aggregate
+  // Aggregate with Map lookup performance optimization
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const roleMap = new Map<string, any>();
 
   for (const row of rows) {
-    if (!roleMap.has(row.role.id)) {
-      roleMap.set(row.role.id, {
+    const roleId = row.role.id;
+    let entry = roleMap.get(roleId);
+
+    if (!entry) {
+      entry = {
         ...row.role,
         permissions: [],
-      });
+      };
+      roleMap.set(roleId, entry);
     }
 
     if (row.permission) {
-      roleMap.get(row.role.id).permissions.push({
+      entry.permissions.push({
         resource: row.permission.resource,
         actions: row.permission.actions,
       });

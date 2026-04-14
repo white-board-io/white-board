@@ -83,25 +83,7 @@ export const roleRepository = {
       .leftJoin(permission, eq(role.id, permission.roleId))
       .where(eq(role.organizationId, organizationId));
 
-    const rolesMap = new Map<string, any>();
-    
-    for (const row of rows) {
-      const roleData = row.role;
-      const permData = row.permission;
-
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
-          ...roleData,
-          permissions: [],
-        });
-      }
-
-      if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
-      }
-    }
-
-    return Array.from(rolesMap.values());
+    return rows;
   },
 
   findByIdWithPermissions: async (organizationId: string, roleId: string) => {
