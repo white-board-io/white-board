@@ -31,11 +31,10 @@ export const roleRepository = {
   updatePermissions: async (
     organizationId: string,
     roleId: string,
-    permissions: { resource: string; actions: string[] }[]
+    permissions: { resource: string; actions: string[] }[],
   ) => {
     await db.transaction(async (tx) => {
-      await tx.delete(permission)
-        .where(and(eq(permission.roleId, roleId)));
+      await tx.delete(permission).where(and(eq(permission.roleId, roleId)));
 
       if (permissions.length > 0) {
         const permissionValues = permissions.map((p) => ({
@@ -51,7 +50,11 @@ export const roleRepository = {
   delete: async (organizationId: string, roleId: string) => {
     await db.transaction(async (tx) => {
       await tx.delete(permission).where(eq(permission.roleId, roleId));
-      await tx.delete(role).where(and(eq(role.id, roleId), eq(role.organizationId, organizationId)));
+      await tx
+        .delete(role)
+        .where(
+          and(eq(role.id, roleId), eq(role.organizationId, organizationId)),
+        );
     });
   },
 
@@ -84,7 +87,7 @@ export const roleRepository = {
       .where(eq(role.organizationId, organizationId));
 
     const rolesMap = new Map<string, any>();
-    
+
     for (const row of rows) {
       const roleData = row.role;
       const permData = row.permission;
@@ -119,9 +122,15 @@ export const roleRepository = {
     }
 
     const roleData = rows[0].role;
-    const permissions = rows
-      .filter(row => row.permission)
-      .map(row => row.permission);
+
+    // Optimization: Replace filter().map() with a single for...of loop to prevent
+    // intermediate array allocation and reduce traversals (O(N) instead of O(2N)).
+    const permissions: (typeof permission.$inferSelect)[] = [];
+    for (const row of rows) {
+      if (row.permission) {
+        permissions.push(row.permission);
+      }
+    }
 
     return {
       ...roleData,

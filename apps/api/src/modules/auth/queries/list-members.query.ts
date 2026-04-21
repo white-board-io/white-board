@@ -87,17 +87,22 @@ export async function listMembersHandler(
     .innerJoin(user, eq(member.userId, user.id))
     .where(eq(member.organizationId, validatedOrgId));
 
-  const activeMembers = membersData.filter((m) => !m.isDeleted);
-
-  const members: MemberInfo[] = activeMembers.map((m) => ({
-    id: m.memberId,
-    userId: m.userId,
-    email: m.email,
-    firstName: m.firstName,
-    lastName: m.lastName,
-    role: m.role,
-    joinedAt: m.createdAt,
-  }));
+  // Optimization: Replace filter().map() with a single for...of loop to prevent
+  // intermediate array allocation and reduce traversals (O(N) instead of O(2N)).
+  const members: MemberInfo[] = [];
+  for (const m of membersData) {
+    if (!m.isDeleted) {
+      members.push({
+        id: m.memberId,
+        userId: m.userId,
+        email: m.email,
+        firstName: m.firstName,
+        lastName: m.lastName,
+        role: m.role,
+        joinedAt: m.createdAt,
+      });
+    }
+  }
 
   logger.info("Members listed", {
     organizationId: validatedOrgId,
