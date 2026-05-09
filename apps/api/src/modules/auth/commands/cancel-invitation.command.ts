@@ -60,8 +60,9 @@ export async function cancelInvitationHandler(
     };
   }
 
+  // Optimization: Select only the 'id' and 'status' to avoid fetching unnecessary columns
   const [invitationRecord] = await db
-    .select()
+    .select({ id: invitation.id, status: invitation.status })
     .from(invitation)
     .where(
       and(

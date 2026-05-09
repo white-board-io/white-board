@@ -65,8 +65,9 @@ export async function updateOrganizationHandler(
 
   const validatedInput: UpdateOrganizationInput = parseResult.data;
 
+  // Optimization: Select only necessary columns instead of full row for existence and validation check
   const [existingOrg] = await db
-    .select()
+    .select({ id: organization.id, isDeleted: organization.isDeleted })
     .from(organization)
     .where(eq(organization.id, validatedOrgId))
     .limit(1);

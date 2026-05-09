@@ -43,8 +43,16 @@ export async function acceptInvitationHandler(
 
   const validatedInput: AcceptInvitationInput = parseResult.data;
 
+  // Optimization: Select only required columns from invitation
   const [invitationRecord] = await db
-    .select()
+    .select({
+      id: invitation.id,
+      email: invitation.email,
+      status: invitation.status,
+      expiresAt: invitation.expiresAt,
+      organizationId: invitation.organizationId,
+      role: invitation.role,
+    })
     .from(invitation)
     .where(eq(invitation.id, validatedInput.invitationId))
     .limit(1);
@@ -98,8 +106,13 @@ export async function acceptInvitationHandler(
     };
   }
 
+  // Optimization: Select only required columns from organization
   const [org] = await db
-    .select()
+    .select({
+      id: organization.id,
+      name: organization.name,
+      isDeleted: organization.isDeleted,
+    })
     .from(organization)
     .where(eq(organization.id, invitationRecord.organizationId))
     .limit(1);

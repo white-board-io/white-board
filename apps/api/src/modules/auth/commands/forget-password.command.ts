@@ -30,8 +30,9 @@ export async function forgetPasswordHandler(
 
   const validatedInput: ForgotPasswordInput = parseResult.data;
 
+  // Optimization: Select only the 'id' column instead of the entire row for existence checks
   const [existingUser] = await db
-    .select()
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.email, validatedInput.email))
     .limit(1);
