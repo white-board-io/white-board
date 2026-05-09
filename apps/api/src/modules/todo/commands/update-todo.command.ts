@@ -29,20 +29,6 @@ export async function updateTodoHandler(
 
   const validatedId = idParseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
-    logger.warn("Todo not found for update", { id: validatedId });
-    return {
-      errors: [
-        {
-          code: "RESOURCE_NOT_FOUND",
-          message: "Todo not found",
-        },
-      ],
-      isSuccess: false,
-    };
-  }
-
   const parseResult = UpdateTodoInputSchema.safeParse(input);
   if (!parseResult.success) {
     const errors = mapZodErrors(parseResult.error);
@@ -55,6 +41,12 @@ export async function updateTodoHandler(
 
   const validatedInput: UpdateTodoInput = parseResult.data;
 
+  // Optimistic update to avoid a separate findById check.
+  // We perform the update and then check if it was successful.
+  // Note: if title is updated we still need to validate its uniqueness,
+  // but since we want to avoid findById, we validate first and update.
+  // If the record didn't exist, we just did a useless validation,
+  // which is an acceptable tradeoff for avoiding findById on every update.
   if (validatedInput.title) {
     await todoValidator.validateTitleUniqueness(
       validatedInput.title,
@@ -64,6 +56,7 @@ export async function updateTodoHandler(
 
   const updatedTodo = await todoRepository.update(validatedId, validatedInput);
   if (!updatedTodo) {
+    logger.warn("Todo not found for update", { id: validatedId });
     return {
       errors: [
         {
