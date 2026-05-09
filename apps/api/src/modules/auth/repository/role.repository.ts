@@ -85,19 +85,22 @@ export const roleRepository = {
 
     const rolesMap = new Map<string, any>();
     
+    // ⚡ Bolt: Cache Map lookup to avoid redundant has and get operations on large result sets
     for (const row of rows) {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      let roleEntry = rolesMap.get(roleData.id);
+      if (!roleEntry) {
+        roleEntry = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, roleEntry);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        roleEntry.permissions.push(permData);
       }
     }
 
