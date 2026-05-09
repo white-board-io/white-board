@@ -6,8 +6,9 @@ const db = vi.hoisted(() => ({
 }));
 const eq = vi.hoisted(() => vi.fn());
 const and = vi.hoisted(() => vi.fn());
+const count = vi.hoisted(() => vi.fn());
 
-vi.mock("@repo/database", () => ({ db, eq, and }));
+vi.mock("@repo/database", () => ({ db, eq, and, count }));
 
 vi.mock("@repo/database/schema/auth", () => ({
   member: {},
