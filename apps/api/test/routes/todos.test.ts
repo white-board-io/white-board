@@ -173,6 +173,55 @@ describe("TODO API endpoints", () => {
       assert.strictEqual(body.data[0].title, "Completed Task");
       assert.strictEqual(body.data[0].completed, true);
     });
+
+    test("should filter by both completed status and priority", async (t) => {
+      const app = await build(t);
+
+      // 1. Target Task (High, Completed)
+      const res1 = await app.inject({
+        method: "POST",
+        url: "/api/v1/todos",
+        payload: { title: "Target Task", priority: "high" },
+      });
+      const todo1 = JSON.parse(res1.payload).data;
+      await app.inject({
+        method: "PATCH",
+        url: `/api/v1/todos/${todo1.id}/toggle`,
+      });
+
+      // 2. Wrong Priority (Low, Completed)
+      const res2 = await app.inject({
+        method: "POST",
+        url: "/api/v1/todos",
+        payload: { title: "Wrong Priority", priority: "low" },
+      });
+      const todo2 = JSON.parse(res2.payload).data;
+      await app.inject({
+        method: "PATCH",
+        url: `/api/v1/todos/${todo2.id}/toggle`,
+      });
+
+      // 3. Wrong Status (High, Incomplete)
+      await app.inject({
+        method: "POST",
+        url: "/api/v1/todos",
+        payload: { title: "Wrong Status", priority: "high" },
+      });
+
+      // Filter
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/v1/todos?completed=true&priority=high",
+      });
+
+      const body = JSON.parse(res.payload);
+
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.data.length, 1);
+      assert.strictEqual(body.data[0].title, "Target Task");
+      assert.strictEqual(body.data[0].priority, "high");
+      assert.strictEqual(body.data[0].completed, true);
+    });
   });
 
   describe("GET /api/v1/todos/:id", () => {
