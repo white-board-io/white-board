@@ -89,15 +89,19 @@ export const roleRepository = {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      // ⚡ Bolt Optimization: Cache the get() reference instead of using has() + get()
+      // This avoids redundant O(1) map lookups, speeding up large aggregations
+      let entry = rolesMap.get(roleData.id);
+      if (!entry) {
+        entry = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, entry);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        entry.permissions.push(permData);
       }
     }
 
