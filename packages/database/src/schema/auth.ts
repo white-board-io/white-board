@@ -11,7 +11,8 @@ import {
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  email: text("email").notNull(),
+  // ⚡ Bolt: Added .unique() to email for O(1)/O(log N) lookup performance during auth operations instead of O(N) full table scans
+  email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   firstName: text("first_name").notNull(),
