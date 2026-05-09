@@ -3,8 +3,9 @@ import type {
   CreateTodoInput,
   UpdateTodoInput,
 } from "../schemas/todo.schema";
-import { db, eq, desc, sql } from "@repo/database";
+import { db, eq, desc, sql, and } from "@repo/database";
 import { todos } from "@repo/database/schema/todo";
+import { SQL } from "drizzle-orm";
 
 // Utility to remove undefined keys but preserve null/false/0
 // This replaces lodash.pickBy(obj, identity) which incorrectly removes falsy values
@@ -25,14 +26,20 @@ export const todoRepository = {
   }): Promise<Todo[]> => {
     const query = db.select().from(todos).orderBy(desc(todos.createdAt));
 
+    const conditions: SQL[] = [];
+
     if (filters?.completed !== undefined) {
-      query.where(eq(todos.completed, filters.completed));
+      conditions.push(eq(todos.completed, filters.completed));
     }
 
     if (filters?.priority) {
-      query.where(
+      conditions.push(
         eq(todos.priority, filters.priority as "low" | "medium" | "high"),
       );
+    }
+
+    if (conditions.length > 0) {
+      query.where(and(...conditions));
     }
 
     const results = await query;
