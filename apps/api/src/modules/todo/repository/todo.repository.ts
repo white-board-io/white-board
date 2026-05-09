@@ -91,13 +91,15 @@ export const todoRepository = {
     return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
-  delete: async (id: string): Promise<boolean> => {
+  // PERFORMANCE: Using returning() to fetch the deleted record atomically,
+  // eliminating the need for a separate findById check before deletion.
+  delete: async (id: string): Promise<Todo | undefined> => {
     const results = await db
       .delete(todos)
       .where(eq(todos.id, id))
-      .returning({ id: todos.id });
+      .returning();
 
-    return results.length > 0;
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
   clear: async (): Promise<void> => {
