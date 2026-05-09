@@ -9,6 +9,7 @@
   },
   "scripts": {
     "lint": "eslint",
+    "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "npm run build:ts && fastify start -l info -p 8000 dist/app.js",

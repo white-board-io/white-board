@@ -40,7 +40,7 @@ export async function removeMemberHandler(
       "member",
       "delete",
     );
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [

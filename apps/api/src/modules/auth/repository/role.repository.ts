@@ -2,6 +2,10 @@ import { db, eq, and } from "@repo/database";
 import { role, permission } from "@repo/database/schema/roles";
 import type { CreateRoleInput } from "../schemas/role.schema";
 
+type RoleWithPermissions = typeof role.$inferSelect & {
+  permissions: (typeof permission.$inferSelect)[];
+};
+
 export const roleRepository = {
   create: async (organizationId: string, input: CreateRoleInput) => {
     return await db.transaction(async (tx) => {
@@ -73,7 +77,7 @@ export const roleRepository = {
     return foundRole;
   },
 
-  listByOrg: async (organizationId: string) => {
+  listByOrg: async (organizationId: string): Promise<RoleWithPermissions[]> => {
     const rows = await db
       .select({
         role: role,
@@ -83,7 +87,7 @@ export const roleRepository = {
       .leftJoin(permission, eq(role.id, permission.roleId))
       .where(eq(role.organizationId, organizationId));
 
-    const rolesMap = new Map<string, any>();
+    const rolesMap = new Map<string, RoleWithPermissions>();
     
     for (const row of rows) {
       const roleData = row.role;
@@ -97,7 +101,7 @@ export const roleRepository = {
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        rolesMap.get(roleData.id)?.permissions.push(permData);
       }
     }
 
@@ -119,9 +123,13 @@ export const roleRepository = {
     }
 
     const roleData = rows[0].role;
-    const permissions = rows
-      .filter(row => row.permission)
-      .map(row => row.permission);
+    const permissions: (typeof permission.$inferSelect)[] = [];
+
+    for (const row of rows) {
+      if (row.permission) {
+        permissions.push(row.permission);
+      }
+    }
 
     return {
       ...roleData,

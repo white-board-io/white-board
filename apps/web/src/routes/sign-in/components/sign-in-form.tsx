@@ -71,7 +71,7 @@ export function SignInForm() {
 
       <div className="mt-6 text-center">
         <Text variant="sm-regular" className="text-gray-800">
-          Don't have an account?
+          Don&apos;t have an account?
         </Text>
         <Button
           variant="link"

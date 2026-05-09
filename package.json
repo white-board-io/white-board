@@ -9,6 +9,9 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test"
   },
+  "resolutions": {
+    "vite": "7.1.7"
+  },
   "devDependencies": {
     "jiti": "^2.6.1",
     "prettier": "^3.7.4",
