@@ -1,5 +1,5 @@
 import { mapZodErrors } from "../../../utils/mapZodErrors";
-import { db, eq } from "@repo/database";
+import { db, eq, and } from "@repo/database";
 import { member, user, organization } from "@repo/database/schema/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
@@ -72,6 +72,7 @@ export async function listMembersHandler(
     };
   }
 
+  // ⚡ Bolt: Fetch only active members from the database to avoid over-fetching and in-memory filtering
   const membersData = await db
     .select({
       memberId: member.id,
@@ -85,11 +86,14 @@ export async function listMembersHandler(
     })
     .from(member)
     .innerJoin(user, eq(member.userId, user.id))
-    .where(eq(member.organizationId, validatedOrgId));
+    .where(
+      and(
+        eq(member.organizationId, validatedOrgId),
+        eq(user.isDeleted, false)
+      )
+    );
 
-  const activeMembers = membersData.filter((m) => !m.isDeleted);
-
-  const members: MemberInfo[] = activeMembers.map((m) => ({
+  const members: MemberInfo[] = membersData.map((m) => ({
     id: m.memberId,
     userId: m.userId,
     email: m.email,
