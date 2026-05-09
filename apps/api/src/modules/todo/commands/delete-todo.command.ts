@@ -27,8 +27,9 @@ export async function deleteTodoHandler(
 
   const validatedId = parseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
+  const deletedTodo = await todoRepository.delete(validatedId);
+
+  if (!deletedTodo) {
     logger.warn("Todo not found for deletion", { id: validatedId });
 
     return {
@@ -42,11 +43,9 @@ export async function deleteTodoHandler(
     };
   }
 
-  await todoRepository.delete(validatedId);
-
   logger.info("Todo deleted successfully", {
     todoId: validatedId,
-    title: existingTodo.title,
+    title: deletedTodo.title,
   });
 
   return {
