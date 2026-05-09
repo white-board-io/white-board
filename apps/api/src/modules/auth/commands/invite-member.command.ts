@@ -109,14 +109,16 @@ export async function inviteMemberHandler(
   }
 
   const existingUser = await db
-    .select()
+    // ⚡ Bolt: select only id for existence check
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.email, validatedInput.email))
     .limit(1);
 
   if (existingUser.length > 0) {
     const existingMember = await db
-      .select()
+      // ⚡ Bolt: select only id for existence check
+      .select({ id: member.id })
       .from(member)
       .where(
         and(
@@ -141,7 +143,8 @@ export async function inviteMemberHandler(
   }
 
   const existingInvitation = await db
-    .select()
+    // ⚡ Bolt: select only id for existence check
+    .select({ id: invitation.id })
     .from(invitation)
     .where(
       and(
@@ -185,21 +188,14 @@ export async function inviteMemberHandler(
     "Someone";
   const inviteUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:3000"}/accept-invitation?token=${newInvitation.id}`;
 
-  console.log("=".repeat(60));
-  console.log("📧 INVITATION EMAIL");
-  console.log("=".repeat(60));
-  console.log(`To: ${validatedInput.email}`);
-  console.log(`Subject: You've been invited to join ${org.name}`);
-  console.log("-".repeat(60));
-  console.log(
-    `${inviterName} has invited you to join ${org.name} as ${validatedInput.role}.`,
-  );
-  console.log(`Accept: ${inviteUrl}`);
-  console.log("=".repeat(60));
-
-  logger.info("Invitation created", {
+  // ⚡ Bolt: Use a single structured logger call instead of multiple synchronous console.logs
+  // to avoid blocking the event loop and improve throughput.
+  logger.info("📧 INVITATION EMAIL", {
+    to: validatedInput.email,
+    subject: `You've been invited to join ${org.name}`,
+    body: `${inviterName} has invited you to join ${org.name} as ${validatedInput.role}.`,
+    inviteUrl,
     invitationId: newInvitation.id,
-    email: validatedInput.email,
     organizationId: validatedInput.organizationId,
   });
 
