@@ -89,15 +89,18 @@ export const roleRepository = {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      // ⚡ Bolt: Optimizing Map lookup. Using a single .get() reference avoids redundant .has() + .get() search operations
+      let roleEntry = rolesMap.get(roleData.id);
+      if (!roleEntry) {
+        roleEntry = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, roleEntry);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        roleEntry.permissions.push(permData);
       }
     }
 
@@ -119,9 +122,14 @@ export const roleRepository = {
     }
 
     const roleData = rows[0].role;
-    const permissions = rows
-      .filter(row => row.permission)
-      .map(row => row.permission);
+
+    // ⚡ Bolt: Replacing .filter().map() with a single for...of loop to prevent multiple array traversals and allocations
+    const permissions = [];
+    for (const row of rows) {
+      if (row.permission) {
+        permissions.push(row.permission);
+      }
+    }
 
     return {
       ...roleData,
