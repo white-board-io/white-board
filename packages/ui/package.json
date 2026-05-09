@@ -46,9 +46,9 @@
     "typescript": "5.9.2",
     "tailwindcss": "^4.0.0",
     "@types/node": "^22.10.2",
-    "@types/react": "^19.2.0",
+    "@types/react": "^19.2.14",
     "@repo/eslint-config": "*",
-    "@types/react-dom": "^19.2.0",
+    "@types/react-dom": "^19.2.3",
     "@repo/typescript-config": "*",
     "@tailwindcss/postcss": "^4.0.0"
   }
