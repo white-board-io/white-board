@@ -1,5 +1,5 @@
 import { mapZodErrors } from "../../../utils/mapZodErrors";
-import { db, eq, and } from "@repo/database";
+import { db, eq, and, count } from "@repo/database";
 import { member } from "@repo/database/schema/auth";
 import {
   RemoveMemberInputSchema,
@@ -77,8 +77,9 @@ export async function removeMemberHandler(
   }
 
   if (memberRecord.role === "owner") {
-    const ownerCount = await db
-      .select()
+    // ⚡ Bolt: Use count() instead of fetching full records for performance
+    const ownerCountResult = await db
+      .select({ count: count() })
       .from(member)
       .where(
         and(
@@ -87,7 +88,7 @@ export async function removeMemberHandler(
         ),
       );
 
-    if (ownerCount.length <= 1) {
+    if (ownerCountResult[0].count <= 1) {
       return {
         isSuccess: false,
         errors: [
