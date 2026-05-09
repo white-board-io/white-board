@@ -35,7 +35,7 @@ export async function deleteRoleHandler(
 
   try {
     await requirePermission(request, orgId, "organization", "update");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
@@ -64,7 +64,7 @@ export async function deleteRoleHandler(
 
   try {
     roleValidator.validateSystemRoleDeletion(targetRole.type);
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [{ code: "FORBIDDEN", message: "Cannot delete system roles" }],
