@@ -11,7 +11,9 @@ import {
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  email: text("email").notNull(),
+  // Adding .unique() creates a unique constraint and an implicit B-tree index,
+  // optimizing user lookups by email from O(N) to O(log N).
+  email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   firstName: text("first_name").notNull(),
