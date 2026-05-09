@@ -89,15 +89,18 @@ export const roleRepository = {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      // Optimization: use a single map.get() to avoid redundant search operations
+      let roleEntry = rolesMap.get(roleData.id);
+      if (!roleEntry) {
+        roleEntry = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, roleEntry);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        roleEntry.permissions.push(permData);
       }
     }
 
