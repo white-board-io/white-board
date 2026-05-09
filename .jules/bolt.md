@@ -1,3 +1,3 @@
-## 2025-01-16 - TS-Node vs ESM Compatibility
-**Learning:** `ts-node` 10.x has known compatibility issues with newer TypeScript versions and ESM environments, causing `TypeError: state.conditions.includes is not a function`. This environment uses Node 22 and TypeScript 5.9.
-**Action:** For verification, rely on compiling to JS or small standalone scripts when the test runner is broken. Do not try to fix the entire test runner infrastructure if not asked.
+## 2025-01-16 - Drizzle Returning Clause Optimization
+**Learning:** Drizzle ORM supports `.returning()` for update and delete queries. In `apps/api/src/modules/todo/repository/todo.repository.ts`, `todoRepository.update` and `todoRepository.delete` both return the affected record(s). Currently, commands like `updateTodoHandler`, `deleteTodoHandler`, and `toggleTodoHandler` are performing a `findById` existence check before calling the repository update/delete methods. We can eliminate the `findById` query and rely on the returning clause to determine if the record existed and was modified.
+**Action:** Remove `findById` checks in mutation commands and use the returned value from repository methods. Check if the returned value is undefined/empty to handle 'not found' cases.
