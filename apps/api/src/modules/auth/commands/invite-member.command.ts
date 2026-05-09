@@ -59,7 +59,7 @@ export async function inviteMemberHandler(
       "invitation",
       "create",
     );
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
@@ -95,7 +95,7 @@ export async function inviteMemberHandler(
       validatedInput.organizationId,
       validatedInput.role,
     );
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [

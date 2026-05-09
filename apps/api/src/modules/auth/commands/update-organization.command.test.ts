@@ -50,7 +50,9 @@ describe("updateOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -64,7 +66,9 @@ describe("updateOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should update organization, when input is valid", async () => {
@@ -103,6 +107,8 @@ describe("updateOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.organization.id).toBe("org-1");
+    if (result.isSuccess) {
+      expect(result.data?.organization.id).toBe("org-1");
+    }
   });
 });

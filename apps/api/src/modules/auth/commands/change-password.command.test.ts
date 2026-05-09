@@ -53,7 +53,9 @@ describe("changePasswordHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -64,7 +66,9 @@ describe("changePasswordHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should change password, when current password is valid", async () => {
@@ -89,6 +93,8 @@ describe("changePasswordHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.success).toBe(true);
+    if (result.isSuccess) {
+      expect(result.data?.success).toBe(true);
+    }
   });
 });

@@ -40,7 +40,9 @@ describe("switchOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    }
   });
 
   it("should return validation errors, when organization id is invalid", async () => {
@@ -52,7 +54,9 @@ describe("switchOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("ORGANIZATION_ID_INVALID");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("ORGANIZATION_ID_INVALID");
+    }
   });
 
   it("should switch organization, when user is a member", async () => {
@@ -66,6 +70,8 @@ describe("switchOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.activeOrganizationId).toBe(organizationId);
+    if (result.isSuccess) {
+      expect(result.data?.activeOrganizationId).toBe(organizationId);
+    }
   });
 });

@@ -41,7 +41,9 @@ describe("deleteOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    }
   });
 
   it("should soft delete organization, when organization exists", async () => {
@@ -68,6 +70,8 @@ describe("deleteOrganizationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.success).toBe(true);
+    if (result.isSuccess) {
+      expect(result.data?.success).toBe(true);
+    }
   });
 });

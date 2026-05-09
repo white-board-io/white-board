@@ -83,6 +83,7 @@ export const roleRepository = {
       .leftJoin(permission, eq(role.id, permission.roleId))
       .where(eq(role.organizationId, organizationId));
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rolesMap = new Map<string, any>();
     
     for (const row of rows) {

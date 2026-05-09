@@ -37,7 +37,9 @@ describe("acceptInvitationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    }
   });
 
   it("should return validation errors, when invitation id is missing", async () => {
@@ -48,7 +50,9 @@ describe("acceptInvitationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should accept invitation, when invitation is valid", async () => {
@@ -94,6 +98,8 @@ describe("acceptInvitationHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.organization.id).toBe("org-1");
+    if (result.isSuccess) {
+      expect(result.data?.organization.id).toBe("org-1");
+    }
   });
 });

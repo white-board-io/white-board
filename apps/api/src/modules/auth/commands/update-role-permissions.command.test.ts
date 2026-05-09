@@ -37,7 +37,9 @@ describe("updateRolePermissionsHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should return validation errors, when permissions are empty", async () => {
@@ -50,7 +52,9 @@ describe("updateRolePermissionsHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("PERMISSIONS_REQUIRED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("PERMISSIONS_REQUIRED");
+    }
   });
 
   it("should update permissions, when role exists", async () => {

@@ -45,7 +45,9 @@ describe("deleteRoleHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+    }
   });
 
   it("should return validation errors, when ids are invalid", async () => {
@@ -57,7 +59,9 @@ describe("deleteRoleHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should delete role, when role is valid", async () => {

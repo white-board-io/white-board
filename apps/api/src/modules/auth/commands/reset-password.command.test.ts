@@ -63,7 +63,9 @@ describe("resetPasswordHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -73,7 +75,9 @@ describe("resetPasswordHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.length).toBeGreaterThan(0);
+    if (!result.isSuccess) {
+      expect(result.errors?.length).toBeGreaterThan(0);
+    }
   });
 
   it("should reset password, when token is valid", async () => {
@@ -112,6 +116,8 @@ describe("resetPasswordHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.success).toBe(true);
+    if (result.isSuccess) {
+      expect(result.data?.success).toBe(true);
+    }
   });
 });

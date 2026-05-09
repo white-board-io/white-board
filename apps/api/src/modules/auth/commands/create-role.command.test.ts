@@ -42,7 +42,9 @@ describe("createRoleHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("FORBIDDEN");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -56,7 +58,9 @@ describe("createRoleHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("ROLE_NAME_REQUIRED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("ROLE_NAME_REQUIRED");
+    }
   });
 
   it("should create role, when input is valid", async () => {
@@ -76,6 +80,8 @@ describe("createRoleHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.role.id).toBe("role-1");
+    if (result.isSuccess) {
+      expect(result.data?.role.id).toBe("role-1");
+    }
   });
 });

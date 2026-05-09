@@ -9,6 +9,7 @@ import type { LoggerHelpers } from "../../../plugins/logger";
 import type { ServiceResult } from "../../../utils/ServiceResult";
 
 export type ListRolesResult = ServiceResult<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   roles: any[];
 }>;
 
@@ -29,7 +30,7 @@ export async function listRolesHandler(
 
   try {
     await requirePermission(request, orgId, "member", "read");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [

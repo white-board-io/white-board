@@ -46,7 +46,9 @@ describe("updateProfileHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("UNAUTHORIZED");
+    }
   });
 
   it("should return validation errors, when input is invalid", async () => {
@@ -59,7 +61,9 @@ describe("updateProfileHandler", () => {
     );
 
     expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("IMAGE_URL_INVALID");
+    if (!result.isSuccess) {
+      expect(result.errors?.[0]?.code).toBe("IMAGE_URL_INVALID");
+    }
   });
 
   it("should update profile, when session is present", async () => {
@@ -92,6 +96,8 @@ describe("updateProfileHandler", () => {
     );
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data?.user.id).toBe("user-1");
+    if (result.isSuccess) {
+      expect(result.data?.user.id).toBe("user-1");
+    }
   });
 });

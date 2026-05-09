@@ -41,7 +41,7 @@ export async function updateOrganizationHandler(
 
   try {
     await requirePermission(request, validatedOrgId, "organization", "update");
-  } catch (error) {
+  } catch {
     return {
       isSuccess: false,
       errors: [
