@@ -91,6 +91,23 @@ export const todoRepository = {
     return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
+  // ⚡ Bolt: Performance optimization
+  // Uses raw SQL expression for an atomic boolean toggle, eliminating the need
+  // for a separate findById existence query. Reduces database round trips by 50%
+  // during toggle operations.
+  toggle: async (id: string): Promise<Todo | undefined> => {
+    const results = await db
+      .update(todos)
+      .set({
+        completed: sql`NOT ${todos.completed}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(todos.id, id))
+      .returning();
+
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
+  },
+
   delete: async (id: string): Promise<boolean> => {
     const results = await db
       .delete(todos)
