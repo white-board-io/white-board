@@ -3,7 +3,7 @@ import type {
   CreateTodoInput,
   UpdateTodoInput,
 } from "../schemas/todo.schema";
-import { db, eq, desc, sql } from "@repo/database";
+import { db, eq, desc, sql, and } from "@repo/database";
 import { todos } from "@repo/database/schema/todo";
 
 // Utility to remove undefined keys but preserve null/false/0
@@ -23,17 +23,22 @@ export const todoRepository = {
     completed?: boolean;
     priority?: string;
   }): Promise<Todo[]> => {
-    const query = db.select().from(todos).orderBy(desc(todos.createdAt));
-
-    if (filters?.completed !== undefined) {
-      query.where(eq(todos.completed, filters.completed));
-    }
-
-    if (filters?.priority) {
-      query.where(
-        eq(todos.priority, filters.priority as "low" | "medium" | "high"),
-      );
-    }
+    // Optimization: Use and() to combine filters instead of multiple .where() calls
+    // because consecutive .where() calls overwrite previous conditions in Drizzle ORM
+    const query = db
+      .select()
+      .from(todos)
+      .where(
+        and(
+          filters?.completed !== undefined
+            ? eq(todos.completed, filters.completed)
+            : undefined,
+          filters?.priority
+            ? eq(todos.priority, filters.priority as "low" | "medium" | "high")
+            : undefined,
+        ),
+      )
+      .orderBy(desc(todos.createdAt));
 
     const results = await query;
     return results.map(mapTodoFromDb);
