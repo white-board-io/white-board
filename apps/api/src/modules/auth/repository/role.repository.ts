@@ -85,19 +85,22 @@ export const roleRepository = {
 
     const rolesMap = new Map<string, any>();
     
+    // ⚡ Bolt: Optimize Map-based data aggregation by replacing .has() and .get() with a single .get() lookup to avoid redundant search operations.
     for (const row of rows) {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      let existingRole = rolesMap.get(roleData.id);
+      if (!existingRole) {
+        existingRole = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, existingRole);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        existingRole.permissions.push(permData);
       }
     }
 
