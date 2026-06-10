@@ -91,13 +91,28 @@ export const todoRepository = {
     return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
-  delete: async (id: string): Promise<boolean> => {
+  // ⚡ Bolt: Return the mapped deleted row instead of a boolean to avoid N+1 queries during delete
+  delete: async (id: string): Promise<Todo | undefined> => {
     const results = await db
       .delete(todos)
       .where(eq(todos.id, id))
-      .returning({ id: todos.id });
+      .returning();
 
-    return results.length > 0;
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
+  },
+
+  // ⚡ Bolt: Add toggle method using raw SQL to atomically invert boolean state without extra read queries
+  toggle: async (id: string): Promise<Todo | undefined> => {
+    const results = await db
+      .update(todos)
+      .set({
+        completed: sql`NOT ${todos.completed}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(todos.id, id))
+      .returning();
+
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
   clear: async (): Promise<void> => {
