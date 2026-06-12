@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const findById = vi.hoisted(() => vi.fn());
 const update = vi.hoisted(() => vi.fn());
 const validateTitleUniqueness = vi.hoisted(() => vi.fn());
 
 vi.mock("../repository/todo.repository", () => ({
   todoRepository: {
-    findById,
     update,
   },
 }));
@@ -34,9 +32,14 @@ describe("updateTodoHandler", () => {
   });
 
   it("should return not found, when todo does not exist", async () => {
-    findById.mockResolvedValue(undefined);
+    validateTitleUniqueness.mockResolvedValue({ isValid: true });
+    update.mockResolvedValue(undefined);
 
-    const result = await updateTodoHandler(todoId, {}, logger);
+    const result = await updateTodoHandler(
+      todoId,
+      { title: "Updated" },
+      logger,
+    );
 
     expect(result.isSuccess).toBe(false);
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
@@ -66,7 +69,6 @@ describe("updateTodoHandler", () => {
       updatedAt: new Date(),
     };
 
-    findById.mockResolvedValue(existingTodo);
     validateTitleUniqueness.mockResolvedValue({ isValid: true });
     update.mockResolvedValue(updatedTodo);
 
