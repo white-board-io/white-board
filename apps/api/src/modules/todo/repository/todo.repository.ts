@@ -91,13 +91,28 @@ export const todoRepository = {
     return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
-  delete: async (id: string): Promise<boolean> => {
+  // ⚡ Bolt: Return the full record to atomically delete and retrieve data without an initial findById query
+  delete: async (id: string): Promise<Todo | undefined> => {
     const results = await db
       .delete(todos)
       .where(eq(todos.id, id))
-      .returning({ id: todos.id });
+      .returning();
 
-    return results.length > 0;
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
+  },
+
+  // ⚡ Bolt: Execute an atomic boolean toggle using sql`NOT x` to avoid a read-then-write pattern
+  toggle: async (id: string): Promise<Todo | undefined> => {
+    const results = await db
+      .update(todos)
+      .set({
+        completed: sql`NOT ${todos.completed}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(todos.id, id))
+      .returning();
+
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
   clear: async (): Promise<void> => {
