@@ -89,15 +89,18 @@ export const roleRepository = {
       const roleData = row.role;
       const permData = row.permission;
 
-      if (!rolesMap.has(roleData.id)) {
-        rolesMap.set(roleData.id, {
+      // ⚡ Bolt: Cache Map.get() result to avoid redundant lookups (replaces has() + get())
+      let entry = rolesMap.get(roleData.id);
+      if (!entry) {
+        entry = {
           ...roleData,
           permissions: [],
-        });
+        };
+        rolesMap.set(roleData.id, entry);
       }
 
       if (permData) {
-        rolesMap.get(roleData.id).permissions.push(permData);
+        entry.permissions.push(permData);
       }
     }
 
@@ -119,9 +122,14 @@ export const roleRepository = {
     }
 
     const roleData = rows[0].role;
-    const permissions = rows
-      .filter(row => row.permission)
-      .map(row => row.permission);
+
+    // ⚡ Bolt: Replace .filter().map() with a single loop to reduce traversals and intermediate allocations
+    const permissions = [];
+    for (const row of rows) {
+      if (row.permission) {
+        permissions.push(row.permission);
+      }
+    }
 
     return {
       ...roleData,
