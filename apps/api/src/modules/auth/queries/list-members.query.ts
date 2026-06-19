@@ -1,5 +1,5 @@
 import { mapZodErrors } from "../../../utils/mapZodErrors";
-import { db, eq } from "@repo/database";
+import { db, eq, and } from "@repo/database";
 import { member, user, organization } from "@repo/database/schema/auth";
 import { OrganizationIdParamSchema } from "../schemas/auth.schema";
 import { requirePermission } from "../middleware/require-auth.middleware";
@@ -72,6 +72,7 @@ export async function listMembersHandler(
     };
   }
 
+  // ⚡ Bolt: Query optimization - Filter isDeleted at DB level instead of fetching and filtering in JS
   const membersData = await db
     .select({
       memberId: member.id,
@@ -85,19 +86,23 @@ export async function listMembersHandler(
     })
     .from(member)
     .innerJoin(user, eq(member.userId, user.id))
-    .where(eq(member.organizationId, validatedOrgId));
+    .where(
+      and(eq(member.organizationId, validatedOrgId), eq(user.isDeleted, false)),
+    );
 
-  const activeMembers = membersData.filter((m) => !m.isDeleted);
-
-  const members: MemberInfo[] = activeMembers.map((m) => ({
-    id: m.memberId,
-    userId: m.userId,
-    email: m.email,
-    firstName: m.firstName,
-    lastName: m.lastName,
-    role: m.role,
-    joinedAt: m.createdAt,
-  }));
+  // ⚡ Bolt: Replace filter().map() with a single for...of loop to reduce intermediate allocations
+  const members: MemberInfo[] = [];
+  for (const m of membersData) {
+    members.push({
+      id: m.memberId,
+      userId: m.userId,
+      email: m.email,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      role: m.role,
+      joinedAt: m.createdAt,
+    });
+  }
 
   logger.info("Members listed", {
     organizationId: validatedOrgId,
