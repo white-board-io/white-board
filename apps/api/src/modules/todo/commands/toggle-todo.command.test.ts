@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const findById = vi.hoisted(() => vi.fn());
-const update = vi.hoisted(() => vi.fn());
+const toggle = vi.hoisted(() => vi.fn());
 
 vi.mock("../repository/todo.repository", () => ({
   todoRepository: {
-    findById,
-    update,
+    toggle,
   },
 }));
 
@@ -26,12 +24,9 @@ describe("toggleTodoHandler", () => {
   });
 
   it("should return not found, when todo does not exist", async () => {
-    findById.mockResolvedValue(undefined);
+    toggle.mockResolvedValue(undefined);
 
-    const result = await toggleTodoHandler(
-      todoId,
-      logger,
-    );
+    const result = await toggleTodoHandler(todoId, logger);
 
     expect(result.isSuccess).toBe(false);
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
@@ -50,19 +45,16 @@ describe("toggleTodoHandler", () => {
       title: "Toggle",
       description: "",
       priority: "medium",
-      completed: false,
+      completed: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    const updatedTodo = { ...todo, completed: true, updatedAt: new Date() };
+    toggle.mockResolvedValue(todo);
 
-    findById.mockResolvedValue(todo);
-    update.mockResolvedValue(updatedTodo);
-
-    const result = await toggleTodoHandler(todo.id, logger);
+    const result = await toggleTodoHandler(todoId, logger);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.data).toEqual(updatedTodo);
+    expect(result.data).toEqual(todo);
   });
 });
