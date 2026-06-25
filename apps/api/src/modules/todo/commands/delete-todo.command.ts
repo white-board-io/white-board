@@ -27,8 +27,10 @@ export async function deleteTodoHandler(
 
   const validatedId = parseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
+  // ⚡ Bolt: Removed redundant findById. Used Drizzle's .returning() inside delete to mutate and fetch in a single query.
+  const deleted = await todoRepository.delete(validatedId);
+
+  if (!deleted) {
     logger.warn("Todo not found for deletion", { id: validatedId });
 
     return {
@@ -42,11 +44,8 @@ export async function deleteTodoHandler(
     };
   }
 
-  await todoRepository.delete(validatedId);
-
   logger.info("Todo deleted successfully", {
     todoId: validatedId,
-    title: existingTodo.title,
   });
 
   return {

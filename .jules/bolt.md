@@ -1,3 +1,6 @@
 ## 2025-01-16 - TS-Node vs ESM Compatibility
 **Learning:** `ts-node` 10.x has known compatibility issues with newer TypeScript versions and ESM environments, causing `TypeError: state.conditions.includes is not a function`. This environment uses Node 22 and TypeScript 5.9.
 **Action:** For verification, rely on compiling to JS or small standalone scripts when the test runner is broken. Do not try to fix the entire test runner infrastructure if not asked.
+## 2025-01-16 - Drizzle ORM Mutations with .returning()
+**Learning:** When using Drizzle's `.returning()` inside mutation methods (like update, delete) to eliminate redundant `findById` existence checks, the method must explicitly return the mapped data (or `undefined`), not a generic boolean or void. For example, `todoRepository.delete` should return `Promise<Todo | undefined>` rather than `Promise<boolean>` so the handler can accurately check `if (!deletedRecord)`. Returning a boolean causes false positives because the raw query result can be truthy even if zero rows were affected.
+**Action:** When refactoring mutations to use atomic `.returning()`, always update the repository method signature to return the entity type (or undefined) and map the results correctly. Also ensure corresponding unit tests are mocking this return type (e.g., `mockResolvedValue(undefined)` for "not found").
