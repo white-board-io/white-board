@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const findById = vi.hoisted(() => vi.fn());
 const update = vi.hoisted(() => vi.fn());
 const validateTitleUniqueness = vi.hoisted(() => vi.fn());
 
 vi.mock("../repository/todo.repository", () => ({
   todoRepository: {
-    findById,
     update,
   },
 }));
@@ -33,20 +31,20 @@ describe("updateTodoHandler", () => {
     vi.clearAllMocks();
   });
 
-  it("should return not found, when todo does not exist", async () => {
-    findById.mockResolvedValue(undefined);
-
-    const result = await updateTodoHandler(todoId, {}, logger);
-
-    expect(result.isSuccess).toBe(false);
-    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
-  });
-
   it("should return validation errors, when id is invalid", async () => {
     const result = await updateTodoHandler("bad-id", {}, logger);
 
     expect(result.isSuccess).toBe(false);
     expect(result.errors?.[0]?.code).toBe("INVALID_TODO_ID_FORMAT");
+  });
+
+  it("should return not found, when todo does not exist", async () => {
+    update.mockResolvedValue(undefined);
+
+    const result = await updateTodoHandler(todoId, { priority: "low" }, logger);
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
   });
 
   it("should update a todo, when input is valid", async () => {
@@ -66,7 +64,6 @@ describe("updateTodoHandler", () => {
       updatedAt: new Date(),
     };
 
-    findById.mockResolvedValue(existingTodo);
     validateTitleUniqueness.mockResolvedValue({ isValid: true });
     update.mockResolvedValue(updatedTodo);
 
