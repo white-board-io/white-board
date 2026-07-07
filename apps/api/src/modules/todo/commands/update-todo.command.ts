@@ -29,19 +29,7 @@ export async function updateTodoHandler(
 
   const validatedId = idParseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
-    logger.warn("Todo not found for update", { id: validatedId });
-    return {
-      errors: [
-        {
-          code: "RESOURCE_NOT_FOUND",
-          message: "Todo not found",
-        },
-      ],
-      isSuccess: false,
-    };
-  }
+  // ⚡ Bolt: Removed redundant findById check; rely on atomic mutation instead
 
   const parseResult = UpdateTodoInputSchema.safeParse(input);
   if (!parseResult.success) {
