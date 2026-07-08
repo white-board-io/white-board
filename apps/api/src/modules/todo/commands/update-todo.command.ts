@@ -29,19 +29,7 @@ export async function updateTodoHandler(
 
   const validatedId = idParseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
-    logger.warn("Todo not found for update", { id: validatedId });
-    return {
-      errors: [
-        {
-          code: "RESOURCE_NOT_FOUND",
-          message: "Todo not found",
-        },
-      ],
-      isSuccess: false,
-    };
-  }
+  // ⚡ Bolt: Removed initial findById check to rely on Drizzle's .returning() during the update query below.
 
   const parseResult = UpdateTodoInputSchema.safeParse(input);
   if (!parseResult.success) {
@@ -64,6 +52,7 @@ export async function updateTodoHandler(
 
   const updatedTodo = await todoRepository.update(validatedId, validatedInput);
   if (!updatedTodo) {
+    logger.warn("Todo not found for update", { id: validatedId });
     return {
       errors: [
         {
