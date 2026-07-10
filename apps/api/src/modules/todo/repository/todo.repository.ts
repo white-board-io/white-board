@@ -3,7 +3,7 @@ import type {
   CreateTodoInput,
   UpdateTodoInput,
 } from "../schemas/todo.schema";
-import { db, eq, desc, sql } from "@repo/database";
+import { db, eq, desc, sql, not } from "@repo/database";
 import { todos } from "@repo/database/schema/todo";
 
 // Utility to remove undefined keys but preserve null/false/0
@@ -85,6 +85,16 @@ export const todoRepository = {
     const results = await db
       .update(todos)
       .set(updateData)
+      .where(eq(todos.id, id))
+      .returning();
+
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
+  },
+
+  toggle: async (id: string): Promise<Todo | undefined> => {
+    const results = await db
+      .update(todos)
+      .set({ completed: not(todos.completed), updatedAt: new Date() })
       .where(eq(todos.id, id))
       .returning();
 
