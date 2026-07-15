@@ -11,7 +11,7 @@ const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error(
     "DATABASE_URL environment variable is required. " +
-      "Please set it to a valid PostgreSQL connection string."
+      "Please set it to a valid PostgreSQL connection string.",
   );
 }
 
@@ -25,4 +25,4 @@ const client = postgres(connectionString, {
 
 export const db = drizzle(client, { schema });
 
-export { eq, and, or, desc, asc, sql } from "drizzle-orm";
+export { eq, and, or, not, desc, asc, sql } from "drizzle-orm";
