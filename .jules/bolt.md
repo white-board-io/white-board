@@ -1,3 +1,3 @@
-## 2025-01-16 - TS-Node vs ESM Compatibility
-**Learning:** `ts-node` 10.x has known compatibility issues with newer TypeScript versions and ESM environments, causing `TypeError: state.conditions.includes is not a function`. This environment uses Node 22 and TypeScript 5.9.
-**Action:** For verification, rely on compiling to JS or small standalone scripts when the test runner is broken. Do not try to fix the entire test runner infrastructure if not asked.
+## 2024-07-16 - Database-level Filtering for Soft-Deleted Records
+**Learning:** In the `listMembersHandler` query, application-level filtering (`Array.prototype.filter()`) was used to filter out soft-deleted users (`!m.isDeleted`) after fetching all records from the database. Prioritizing database-level filtering (e.g., using Drizzle's `.where(and(...))` to exclude soft-deleted items) over application-level filtering avoids unnecessary database I/O, network transfer overhead, and memory allocation for discarded records.
+**Action:** When working on queries involving soft-deletable records, always ensure filtering is pushed down to the database level rather than fetching everything and filtering in code.
