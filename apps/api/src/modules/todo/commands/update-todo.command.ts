@@ -29,20 +29,6 @@ export async function updateTodoHandler(
 
   const validatedId = idParseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
-  if (!existingTodo) {
-    logger.warn("Todo not found for update", { id: validatedId });
-    return {
-      errors: [
-        {
-          code: "RESOURCE_NOT_FOUND",
-          message: "Todo not found",
-        },
-      ],
-      isSuccess: false,
-    };
-  }
-
   const parseResult = UpdateTodoInputSchema.safeParse(input);
   if (!parseResult.success) {
     const errors = mapZodErrors(parseResult.error);
@@ -56,12 +42,34 @@ export async function updateTodoHandler(
   const validatedInput: UpdateTodoInput = parseResult.data;
 
   if (validatedInput.title) {
-    await todoValidator.validateTitleUniqueness(
+    const validationResult = await todoValidator.validateTitleUniqueness(
       validatedInput.title,
       validatedId,
     );
+
+    // ⚡ Bolt: Prevent error-precedence regression. If title uniqueness fails,
+    // we must ensure the record actually exists before returning the validation error.
+    if (!validationResult.isValid) {
+      const existingTodo = await todoRepository.findById(validatedId);
+      if (!existingTodo) {
+        return {
+          errors: [
+            {
+              code: "RESOURCE_NOT_FOUND",
+              message: "Todo not found",
+            },
+          ],
+          isSuccess: false,
+        };
+      }
+      return {
+        isSuccess: false,
+        errors: validationResult.errors,
+      };
+    }
   }
 
+  // ⚡ Bolt: Eliminate redundant findById existence check by relying on .returning()
   const updatedTodo = await todoRepository.update(validatedId, validatedInput);
   if (!updatedTodo) {
     return {
