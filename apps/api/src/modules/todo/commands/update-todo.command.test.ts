@@ -33,10 +33,27 @@ describe("updateTodoHandler", () => {
     vi.clearAllMocks();
   });
 
-  it("should return not found, when todo does not exist", async () => {
+  it("should return not found, when todo does not exist (update missing title)", async () => {
+    update.mockResolvedValue(undefined);
+
+    const result = await updateTodoHandler(
+      todoId,
+      { description: "foo" },
+      logger,
+    );
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+  });
+
+  it("should return not found, when todo does not exist (validation fallback)", async () => {
+    validateTitleUniqueness.mockResolvedValue({
+      isValid: false,
+      errors: [{ code: "DUPLICATE_TITLE", message: "dup" }],
+    });
     findById.mockResolvedValue(undefined);
 
-    const result = await updateTodoHandler(todoId, {}, logger);
+    const result = await updateTodoHandler(todoId, { title: "foo" }, logger);
 
     expect(result.isSuccess).toBe(false);
     expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
@@ -66,7 +83,6 @@ describe("updateTodoHandler", () => {
       updatedAt: new Date(),
     };
 
-    findById.mockResolvedValue(existingTodo);
     validateTitleUniqueness.mockResolvedValue({ isValid: true });
     update.mockResolvedValue(updatedTodo);
 
