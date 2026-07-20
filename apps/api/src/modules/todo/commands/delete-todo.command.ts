@@ -27,7 +27,8 @@ export async function deleteTodoHandler(
 
   const validatedId = parseResult.data.id;
 
-  const existingTodo = await todoRepository.findById(validatedId);
+  // ⚡ Bolt: Rely on atomic delete that returns undefined if record doesn't exist
+  const existingTodo = await todoRepository.delete(validatedId);
   if (!existingTodo) {
     logger.warn("Todo not found for deletion", { id: validatedId });
 
@@ -41,8 +42,6 @@ export async function deleteTodoHandler(
       isSuccess: false,
     };
   }
-
-  await todoRepository.delete(validatedId);
 
   logger.info("Todo deleted successfully", {
     todoId: validatedId,
