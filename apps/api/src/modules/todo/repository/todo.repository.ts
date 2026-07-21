@@ -91,13 +91,10 @@ export const todoRepository = {
     return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
-  delete: async (id: string): Promise<boolean> => {
-    const results = await db
-      .delete(todos)
-      .where(eq(todos.id, id))
-      .returning({ id: todos.id });
+  delete: async (id: string): Promise<Todo | undefined> => {
+    const results = await db.delete(todos).where(eq(todos.id, id)).returning();
 
-    return results.length > 0;
+    return results.length > 0 ? mapTodoFromDb(results[0]) : undefined;
   },
 
   clear: async (): Promise<void> => {
