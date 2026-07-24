@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const findById = vi.hoisted(() => vi.fn());
 const remove = vi.hoisted(() => vi.fn());
 
 vi.mock("../repository/todo.repository", () => ({
   todoRepository: {
-    findById,
     delete: remove,
   },
 }));
@@ -32,21 +30,19 @@ describe("deleteTodoHandler", () => {
     expect(result.errors?.length).toBeGreaterThan(0);
   });
 
-  it("should delete a todo, when todo exists", async () => {
-    const todo = {
-      id: todoId,
-      title: "To delete",
-      description: "",
-      priority: "low",
-      completed: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  it("should return not found error, when delete returns false", async () => {
+    remove.mockResolvedValue(false);
 
-    findById.mockResolvedValue(todo);
+    const result = await deleteTodoHandler(todoId, logger);
+
+    expect(result.isSuccess).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("RESOURCE_NOT_FOUND");
+  });
+
+  it("should delete a todo, when delete returns true", async () => {
     remove.mockResolvedValue(true);
 
-    const result = await deleteTodoHandler(todo.id, logger);
+    const result = await deleteTodoHandler(todoId, logger);
 
     expect(result.isSuccess).toBe(true);
     expect(result.data).toBeNull();
